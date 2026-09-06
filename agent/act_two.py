@@ -58,11 +58,41 @@ def run_act_two(
     entity_id: str = "ENT-IN-02",
     period: str = "2026-03",
     on_event: Optional[Callable[[dict], None]] = None,
+    replay: bool = False,
+    record: bool = False,
+    fixture_path: Optional[str | Path] = None,
+    respect_timing: bool = True,
+    speed: float = 1.0,
 ) -> dict:
     """Runs the full Act II investigation. Returns a summary dict including
     the final residual, accepted factors, rejected hypotheses, the recovery
     finding, and the escalation packet (if any). Deterministic: repeated
     calls produce identical numbers."""
+    from contextlib import nullcontext
+    from agent.replay import (
+        DEFAULT_ACT_TWO_FIXTURE,
+        record_session,
+        replay_session,
+    )
+
+    path = fixture_path or DEFAULT_ACT_TWO_FIXTURE
+    ctx = (
+        replay_session(path, respect_timing=respect_timing, speed=speed)
+        if replay
+        else record_session(path)
+        if record
+        else nullcontext()
+    )
+
+    with ctx:
+        return _run_act_two_core(entity_id=entity_id, period=period, on_event=on_event)
+
+
+def _run_act_two_core(
+    entity_id: str = "ENT-IN-02",
+    period: str = "2026-03",
+    on_event: Optional[Callable[[dict], None]] = None,
+) -> dict:
 
     baseline = compute_baseline(entity_id, period)
     policy_bundle = tools.get_policy(entity_id, period)
@@ -393,13 +423,50 @@ def run_act_two(
 
 
 if __name__ == "__main__":
+    import argparse
     from integrations.ao_client import handle_event
+
+    parser = argparse.ArgumentParser(description="reconFX Act II — The Live Investigation")
+    parser.add_argument(
+        "--replay",
+        action="store_true",
+        help="Replay cached tool outputs without hitting data/ files live (demo insurance policy)",
+    )
+    parser.add_argument(
+        "--fixture",
+        type=str,
+        default=None,
+        help="Path to fixture JSON file (default: tests/fixtures/act_two_replay.json)",
+    )
+    parser.add_argument(
+        "--speed",
+        type=float,
+        default=1.0,
+        help="Playback speed multiplier for --replay (default: 1.0)",
+    )
+    args = parser.parse_args()
 
     def _on_event(e: dict) -> None:
         print(e)
         handle_event(e)
 
-    result = run_act_two(on_event=_on_event)
+    if args.replay:
+        result = run_act_two(
+            on_event=_on_event,
+            replay=True,
+            record=False,
+            fixture_path=args.fixture,
+            respect_timing=True,
+            speed=args.speed,
+        )
+    else:
+        result = run_act_two(
+            on_event=_on_event,
+            replay=False,
+            record=True,
+            fixture_path=args.fixture,
+        )
+
     print("\n--- SUMMARY ---")
     print(f"Residual: {result['residual']}")
     print(f"Accepted factors: {len(result['accepted_factors'])}")
