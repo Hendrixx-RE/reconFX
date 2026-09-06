@@ -1,1 +1,13 @@
-{}
+{
+  "contract_id": "ICC-US-IN-001",
+  "provider_entity": "ENT-IN-02",
+  "provider_name": "Maximor India Engineering Pvt Ltd",
+  "recipient_entity": "ENT-US-01",
+  "recipient_name": "Maximor Inc USA",
+  "billing_currency": "USD",
+  "local_currency": "INR",
+  "fx_rate_agreed": 83.50,
+  "fx_rate_basis": "CONTRACTUAL_FIXED",
+  "payment_terms": "NET_30",
+  "clearing_account": "1900"
+}

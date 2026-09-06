@@ -1,1 +1,19 @@
-{}
+{
+  "entity_id": "ENT-IN-02",
+  "derived_from": "clearing_account_1900_excavation",
+  "plug_months_analysed": 11,
+  "period_range": "2024-06 to 2025-04",
+  "cause_priors": [
+    { "cause": "TIMING_UNBILLED",     "occurrences": 7, "prior": 0.64,
+      "signature": "eligible-account cost posted after billing_cutoff_day_of_month" },
+    { "cause": "MISCLASSIFICATION",   "occurrences": 2, "prior": 0.18,
+      "signature": "rechargeable description in excluded GL account" },
+    { "cause": "APPROVED_EXCLUSION",  "occurrences": 1, "prior": 0.09,
+      "signature": "policy exception memo not tagged in ERP" },
+    { "cause": "UNRESOLVED",          "occurrences": 1, "prior": 0.09,
+      "signature": "no evidence trail located" }
+  ],
+  "recommended_hypothesis_order": [
+    "TIMING_UNBILLED", "MISCLASSIFICATION", "APPROVED_EXCLUSION", "FX_REVALUATION"
+  ]
+}
