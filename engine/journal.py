@@ -1,4 +1,4 @@
-"""Journal entry construction (PLAN.md §5.3 engine/journal.py).
+"""Journal entry construction (README.md §5.3 engine/journal.py).
 
 Builds balanced JE payloads. Debits must equal credits before a JournalEntry
 can be constructed at all — the assertion lives in __post_init__ so it is
@@ -73,7 +73,7 @@ def draft_true_up(
     recipient_entity: str,
     evidence: list[str] | None = None,
 ) -> JournalEntry:
-    """Mirrors PLAN.md Appendix C's proposed_journal_entry: a four-line
+    """Mirrors README.md Appendix C's proposed_journal_entry: a four-line
     intercompany true-up across both entities."""
     return JournalEntry(
         entry_type="TP_TRUE_UP",

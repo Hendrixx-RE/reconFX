@@ -1,11 +1,11 @@
-"""Act I — the excavation (PLAN.md §2.2, §5.3 agent/act_one.py).
+"""Act I — the excavation (README.md §2.2, §5.3 agent/act_one.py).
 
 load clearing ledger -> for each candidate stratum: call the confirming
 tool, gather evidence -> pass transaction IDs to test_hypothesis() ->
 assign disposition -> after all strata: derive cause_profile.json from the
 plug stratum -> escalate the untraceable remainder.
 
-Per PLAN.md Phase 3 cut list #1, stratum identification is scripted here
+Per README.md Phase 3 cut list #1, stratum identification is scripted here
 (the interesting reasoning is in *confirmation*, not ordering) — each
 stratum is still confirmed by a real tool call and gated by the real
 DecompositionState, so the numbers are never hardcoded, only which
@@ -199,7 +199,7 @@ def _record_stratum(loop: ReActLoop, classification: str, result: dict, label: s
 
 def _derive_cause_profile(plug_rows: list[dict]) -> dict:
     """Correlates each margin-plug month against late payroll postings to
-    build the prior Act II consumes (PLAN.md §2.2 Stage 6, §4.3)."""
+    build the prior Act II consumes (README.md §2.2 Stage 6, §4.3)."""
     import csv
 
     with open(DATA_DIR / "payroll_register.csv", newline="", encoding="utf-8") as f:

@@ -1,4 +1,4 @@
-"""Tensormux gateway client (PLAN.md §5.3, §6.5).
+"""Tensormux gateway client (README.md §5.3, §6.5).
 
 Two named routes: call_fast (bulk classification, high volume/low judgment)
 and call_strong (policy interpretation, precedence, memo narrative reading).

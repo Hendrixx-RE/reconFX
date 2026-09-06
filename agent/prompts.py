@@ -1,4 +1,4 @@
-"""System and task prompts for the reconFX agent (PLAN.md §5.3, Phase 3).
+"""System and task prompts for the reconFX agent (README.md §5.3, Phase 3).
 
 Three rules are non-negotiable and must survive any future prompt edit:
 1. The model never states a dollar figure that is trusted as a result.

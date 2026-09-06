@@ -1,4 +1,4 @@
-"""PLAN.md Phase 2 acceptance tests (§3.3 exclusivity, §3.5 materiality,
+"""README.md Phase 2 acceptance tests (§3.3 exclusivity, §3.5 materiality,
 §3.6 termination, §5.3 journal balance)."""
 
 from decimal import Decimal

@@ -2,7 +2,7 @@
 
 **Status: not started.**
 
-Per PLAN.md §6, each of these wraps a sponsor stack in a way a judge can
+Per README.md §6, each of these wraps a sponsor stack in a way a judge can
 independently verify on screen, and each must degrade gracefully (never
 block the demo) if the network or the sponsor's API is unavailable:
 

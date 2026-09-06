@@ -1,6 +1,6 @@
-"""PLAN.md Phase 1 acceptance test, exercised here against the engine
+"""README.md Phase 1 acceptance test, exercised here against the engine
 (Phase 2 depends on this data being correct; Phase 1 owns data/ long-term).
-Every number here traces to PLAN.md §4 and must never be rounded or
+Every number here traces to README.md §4 and must never be rounded or
 "improved" — if a computed value disagrees with this file, the code is
 wrong, not the table.
 """
@@ -46,7 +46,7 @@ def test_clearing_ledger_sums_to_balance():
 
 
 def test_plug_months_correlate_with_late_payroll():
-    """PLAN.md requires 7 of the 11 margin-plug months to fall in months with
+    """README.md requires 7 of the 11 margin-plug months to fall in months with
     a post-cutoff payroll posting. The stub payroll_register.csv in this repo
     only carries the current period (2026-03); Phase 1 is responsible for
     adding the 2024-06..2025-04 OFF_CYCLE_LATE rows that make this true.
