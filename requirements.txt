@@ -1,3 +1,4 @@
 pytest>=8.0
 pandas
 reportlab
+requests
