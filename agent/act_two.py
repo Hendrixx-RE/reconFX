@@ -24,6 +24,7 @@ from typing import Callable, Optional
 from engine.baseline import compute_baseline
 from engine.decomposition import DecompositionState, quantify_factor
 from agent import tools
+from agent.tools import span
 from agent.loop import ReActLoop, LoopEscalated
 from agent.prompts import ACT_TWO_TASK_PROMPT, hypothesis_prompt
 
@@ -33,6 +34,13 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 def _load_cause_profile() -> dict:
     with open(DATA_DIR / "cause_profile.json", encoding="utf-8") as f:
         return json.load(f)
+
+
+@span(kind="REASONING")
+def generate_hypotheses(context: Optional[dict] = None, prior: Optional[dict] = None) -> list[str]:
+    """Propose hypothesis order from cause profile prior (README §6.4)."""
+    source = prior if prior is not None else (context or {})
+    return source.get("recommended_hypothesis_order", [])
 
 
 def _load_invoice_summary(period: str) -> Optional[dict]:
@@ -79,6 +87,11 @@ def run_act_two(
 
     loop = ReActLoop(act="INVESTIGATION", escalate_fn=tools.escalate, on_event=on_event)
 
+    hypothesis_order = generate_hypotheses(
+        context={"residual": state.residual},
+        prior=cause_profile,
+    )
+
     loop.record_hypothesis_event(
         "HYPOTHESIS",
         {
@@ -91,7 +104,7 @@ def run_act_two(
                 "effective_markup": str(baseline.effective_markup),
                 "deviation": str(baseline.deviation),
             },
-            "cause_profile_order": cause_profile["recommended_hypothesis_order"],
+            "cause_profile_order": hypothesis_order,
             "reason": hypothesis_prompt({"residual": state.residual}, cause_profile),
         },
     )
