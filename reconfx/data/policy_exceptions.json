@@ -1,1 +1,15 @@
-{}
+[
+  {
+    "exception_id": "EXP-2026-08",
+    "entity_id": "ENT-IN-02",
+    "applies_to_gl_accounts": ["6120", "6900"],
+    "approved_amount_usd": 80000.00,
+    "effective_period": "2026-03",
+    "approval_type": "PERMANENT_EXCLUSION",
+    "approver": "VP Corporate Tax",
+    "approval_date": "2026-03-19",
+    "reason_code": "RESTRUCTURING_SEVERANCE",
+    "narrative": "Executive severance settlement arising from the March 2026 leadership restructuring is excluded from the cost-plus service fee base for the duration of the 2026 agreement. This exclusion is permanent and is not to be recovered through any subsequent true-up.",
+    "documentation_link": "doc_store/EXP-2026-08_memo.pdf"
+  }
+]

@@ -1,1 +1,88 @@
-{}
+{
+  "migration_event": "NetSuite ERP Cutover",
+  "source_system": "LEGACY_MIGRATION",
+  "target_system": "NetSuite",
+  "cutover_window_start": "2023-04-01",
+  "cutover_window_end": "2023-04-05",
+  "start_date": "2023-04-01",
+  "end_date": "2023-04-05",
+  "status": "COMPLETED",
+  "total_batches": 9,
+  "total_amount_usd": 612000.00,
+  "batch_ids": [
+    "MIG-20230401-01",
+    "MIG-20230401-02",
+    "MIG-20230402-01",
+    "MIG-20230402-02",
+    "MIG-20230403-01",
+    "MIG-20230403-02",
+    "MIG-20230404-01",
+    "MIG-20230405-01",
+    "MIG-20230405-02"
+  ],
+  "batches": [
+    {
+      "batch_id": "MIG-20230401-01",
+      "posting_date": "2023-04-01",
+      "amount_usd": 68000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover opening balance load 01"
+    },
+    {
+      "batch_id": "MIG-20230401-02",
+      "posting_date": "2023-04-01",
+      "amount_usd": 72000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover opening balance load 02"
+    },
+    {
+      "batch_id": "MIG-20230402-01",
+      "posting_date": "2023-04-02",
+      "amount_usd": 54000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover subledger sync 01"
+    },
+    {
+      "batch_id": "MIG-20230402-02",
+      "posting_date": "2023-04-02",
+      "amount_usd": 85000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover subledger sync 02"
+    },
+    {
+      "batch_id": "MIG-20230403-01",
+      "posting_date": "2023-04-03",
+      "amount_usd": 45000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover clearing reconciliation 01"
+    },
+    {
+      "batch_id": "MIG-20230403-02",
+      "posting_date": "2023-04-03",
+      "amount_usd": 95000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover clearing reconciliation 02"
+    },
+    {
+      "batch_id": "MIG-20230404-01",
+      "posting_date": "2023-04-04",
+      "amount_usd": 63000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover intercompany suspense 01"
+    },
+    {
+      "batch_id": "MIG-20230405-01",
+      "posting_date": "2023-04-05",
+      "amount_usd": 50000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover final adjustments 01"
+    },
+    {
+      "batch_id": "MIG-20230405-02",
+      "posting_date": "2023-04-05",
+      "amount_usd": 80000.00,
+      "source_system": "LEGACY_MIGRATION",
+      "description": "Legacy migration cutover final adjustments 02"
+    }
+  ]
+}
