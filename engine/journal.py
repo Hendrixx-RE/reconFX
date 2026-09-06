@@ -85,3 +85,24 @@ def draft_true_up(
         ],
         supporting_evidence=evidence or [],
     )
+
+
+def draft_reversal(
+    amount: Decimal,
+    account: str,
+    offset_account: str = "1900",
+    description: str = "",
+    entity: str = "",
+    evidence: list[str] | None = None,
+) -> JournalEntry:
+    """Drafts a reversing journal entry (e.g. for duplicate GL entries or unreversed items)."""
+    return JournalEntry(
+        entry_type="GL_REVERSAL",
+        lines=[
+            JournalLine(entity=entity, account=offset_account, description=f"Reversal offset: {description}", debit=amount),
+            JournalLine(entity=entity, account=account, description=f"Reverse {description}", credit=amount),
+        ],
+        supporting_evidence=evidence or [],
+        requires_approval=True,
+        status="DRAFT",
+    )

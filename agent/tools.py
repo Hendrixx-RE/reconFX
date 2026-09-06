@@ -166,18 +166,49 @@ def query_approvals(
 # 5. query_clearing_account
 # ---------------------------------------------------------------------------
 @span(kind="TOOL")
-def query_clearing_account(account: str, from_date: str, to_date: str) -> dict:
-    """Act I. Open items in the clearing account across the full history."""
+def query_clearing_account(
+    account: str,
+    from_date: str,
+    to_date: str,
+    entity_id: Optional[str] = None,
+) -> dict:
+    """Act I. Open items in the clearing account across the full history.
+    Inspects entity_id tag and excludes rows belonging to third entities (§10.2 attack #10)."""
     rows = _read_csv("clearing_ledger.csv")
     out = [
         r
         for r in rows
-        if r["account"] == account and from_date <= r["posting_date"] <= to_date
+        if r["account"] == account
+        and from_date <= r["posting_date"] <= to_date
+        and (entity_id is None or r.get("entity_id") == entity_id)
     ]
     return {
         "items": out,
         "evidence_refs": [f"data/clearing_ledger.csv#{r['doc_id']}" for r in out],
     }
+
+
+# ---------------------------------------------------------------------------
+# Evidence verification (§10.2 attack #6)
+# ---------------------------------------------------------------------------
+@span(kind="TOOL")
+def verify_evidence(evidence_ref: str) -> bool:
+    """Verifies that an evidence link or file exists on disk."""
+    if not evidence_ref:
+        return False
+    clean_ref = evidence_ref.split("#")[0].strip()
+    if clean_ref.startswith("data/"):
+        clean_ref = clean_ref[len("data/") :]
+    target = DATA_DIR / clean_ref
+    return target.exists()
+
+
+def verify_approval_memo(memo: dict) -> bool:
+    """Verifies approval memo documentation_link exists on disk (§10.2 attack #6)."""
+    link = memo.get("documentation_link")
+    if not link:
+        return False
+    return verify_evidence(link)
 
 
 # ---------------------------------------------------------------------------
@@ -198,6 +229,7 @@ def test_hypothesis(
     classification: str,
     transaction_ids: list[str],
     evidence_refs: list[str],
+    cap: Optional[Decimal] = None,
 ) -> dict:
     """Validates exclusivity against accepted sets, applies alpha by
     classification, computes the factor deterministically, applies the
@@ -211,6 +243,7 @@ def test_hypothesis(
         classification=classification,
         transaction_ids=transaction_ids,
         evidence_refs=evidence_refs,
+        cap=cap,
     )
     return {
         "accepted": result.accepted,

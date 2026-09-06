@@ -21,7 +21,7 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Callable, Optional
 
-from engine.baseline import compute_baseline
+from engine.baseline import compute_baseline, check_mapping_conflict
 from engine.decomposition import DecompositionState, quantify_factor
 from agent import tools
 from agent.tools import span
@@ -148,6 +148,13 @@ def run_act_two(
                 "FACTOR_ACCEPTED",
                 {"cause_id": "F1", "label": "Unbilled late payroll", "disposition": "ROLL_TO_APRIL_BILLING", **h1_result},
             )
+        elif h1_result.get("rejection_reason") == "OVER_ATTRIBUTION":
+            loop.escalate(
+                reason="OVER_ATTRIBUTION",
+                residual_usd=float(state.residual),
+                evidence_gap=["Factor for F1 exceeds remaining residual (over-attribution)"],
+                packet={"cause_id": "F1", **h1_result},
+            )
 
         # H2 — APPROVED_EXCLUSION: severance excluded by memo, counted by the naive base.
         approvals = loop.call_tool(
@@ -168,6 +175,25 @@ def run_act_two(
         severance_ids = [row["doc_id"] for row in severance_gl["items"]]
         h2_result = None
         if approvals["items"] and severance_ids:
+            memo = approvals["items"][0]
+            # Verify approval memo link exists on disk (§10.2 attack #6)
+            if not tools.verify_approval_memo(memo):
+                loop.record_hypothesis_event(
+                    "EVIDENCE_VERIFICATION_FAILED",
+                    {"cause_id": "F2", "documentation_link": memo.get("documentation_link")},
+                )
+                loop.escalate(
+                    reason="EVIDENCE_VERIFICATION_FAILED",
+                    residual_usd=float(state.residual),
+                    evidence_gap=[f"Resolvable documentation file for {memo.get('documentation_link')}"],
+                    packet={"cause_id": "F2", "documentation_link": memo.get("documentation_link")},
+                )
+
+            approved_cap = (
+                Decimal(str(memo["approved_amount_usd"]))
+                if "approved_amount_usd" in memo and memo["approved_amount_usd"] is not None
+                else None
+            )
             h2_result = loop.call_tool(
                 "test_hypothesis",
                 tools.test_hypothesis,
@@ -176,6 +202,7 @@ def run_act_two(
                     "classification": "APPROVED_EXCLUSION",
                     "transaction_ids": severance_ids,
                     "evidence_refs": approvals["evidence_refs"] + severance_gl["evidence_refs"],
+                    "cap": approved_cap,
                 },
             )
             if h2_result["accepted"]:
@@ -189,6 +216,13 @@ def run_act_two(
                         "precedence_note": "APPROVED_POLICY_EXCEPTION_MEMO overrides TP_POLICY_GL_MAPPING",
                         **h2_result,
                     },
+                )
+            elif h2_result.get("rejection_reason") == "OVER_ATTRIBUTION":
+                loop.escalate(
+                    reason="OVER_ATTRIBUTION",
+                    residual_usd=float(state.residual),
+                    evidence_gap=["Factor for F2 exceeds remaining residual (over-attribution)"],
+                    packet={"cause_id": "F2", **h2_result},
                 )
 
         # H3 — FX_REVALUATION: test, expect rejection below materiality.
@@ -215,6 +249,13 @@ def run_act_two(
                 },
             )
             if not h3_result["accepted"]:
+                if h3_result.get("rejection_reason") == "OVER_ATTRIBUTION":
+                    loop.escalate(
+                        reason="OVER_ATTRIBUTION",
+                        residual_usd=float(state.residual),
+                        evidence_gap=["Factor for H3 exceeds remaining residual (over-attribution)"],
+                        packet={"cause_id": "H3", **h3_result},
+                    )
                 rejected_hypotheses.append(
                     {
                         "hypothesis": "FX_REVALUATION",
@@ -240,6 +281,10 @@ def run_act_two(
             },
         )
         if saas_gl["items"]:
+            for item in saas_gl["items"]:
+                conflict = check_mapping_conflict(item, policy)
+                if conflict.get("has_conflict"):
+                    loop.record_hypothesis_event("MAPPING_CONFLICT", conflict)
             saas_ids = [row["doc_id"] for row in saas_gl["items"]]
             amount_lookup = {row["doc_id"]: Decimal(row["amount_usd"]) for row in saas_gl["items"]}
             recovery_amount = quantify_factor(

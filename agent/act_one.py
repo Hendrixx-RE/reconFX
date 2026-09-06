@@ -38,7 +38,9 @@ DISPOSITIONS = {
 }
 
 
-def run_act_one(on_event: Optional[Callable[[dict], None]] = None) -> dict:
+def run_act_one(
+    on_event: Optional[Callable[[dict], None]] = None, entity_id: str = "ENT-IN-02"
+) -> dict:
     """Runs the full Act I excavation. Returns a summary dict and writes
     data/cause_profile.json from the confirmed margin-plug stratum."""
 
@@ -49,7 +51,7 @@ def run_act_one(on_event: Optional[Callable[[dict], None]] = None) -> dict:
     ledger = loop.call_tool(
         "query_clearing_account",
         tools.query_clearing_account,
-        {"account": ACCOUNT, "from_date": FROM_DATE, "to_date": TO_DATE},
+        {"account": ACCOUNT, "from_date": FROM_DATE, "to_date": TO_DATE, "entity_id": entity_id},
     )
     items = ledger["items"]
     opening_balance = sum(Decimal(row["amount_usd"]) for row in items)
