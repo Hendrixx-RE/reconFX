@@ -1,0 +1,59 @@
+/* reconFX Design Tokens — Forensic Accounting Visual Language */
+:root {
+  /* Three disposition colors:
+     - Explained: calm, verified, quiet green
+     - Recovered: distinct discovering/entitlement sky-blue
+     - Escalated: ONLY high-alarm color on the page (intense vermilion)
+  */
+  --color-explained: #2ea043;
+  --color-explained-muted: rgba(46, 160, 67, 0.12);
+  --color-explained-border: #238636;
+
+  --color-recovered: #38bdf8;
+  --color-recovered-muted: rgba(56, 189, 248, 0.12);
+  --color-recovered-border: #0284c7;
+
+  --color-escalated: #f85149;
+  --color-escalated-muted: rgba(248, 81, 73, 0.12);
+  --color-escalated-border: #da3633;
+
+  /* Neutral palette — bedrock/slate/graphite surfaces (strictly no cream/terracotta) */
+  --color-bg: #090d13;
+  --color-surface: #121820;
+  --color-surface-raised: #1a222c;
+  --color-surface-sunken: #06090d;
+  --color-border: #26303c;
+  --color-border-subtle: #1a222c;
+  --color-border-strong: #3b4756;
+
+  /* Two type roles at most */
+  --font-trace: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-figures: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Text hierarchy */
+  --color-text-primary: #e6edf3;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #5b6571;
+  --color-text-inverse: #090d13;
+
+  /* Base spacing & layout tokens */
+  --space-2xs: 2px;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+
+  --header-height: 52px;
+  --footer-height: 44px;
+
+  /* Structural geometry: architectural, crisp corners (no soft generic rounded bubbles) */
+  --radius-none: 0px;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+
+  /* Focus and interactive */
+  --color-focus: #58a6ff;
+  --color-hover-subtle: rgba(255, 255, 255, 0.04);
+}
