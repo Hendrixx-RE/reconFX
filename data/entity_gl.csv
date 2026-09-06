@@ -1,0 +1,10 @@
+doc_id,posting_date,cost_center,gl_account,account_description,amount_usd,description,source_system,vendor_invoice_ref
+GL-2026-0301,2026-03-05,CC-100,6100,Direct Engineering Payroll,1700000.00,March Engineering Base Payroll,PAYROLL,
+GL-2026-0302,2026-03-10,CC-101,6110,Cloud Infrastructure,420000.00,AWS Production Hosting Charges,AP_INVOICE,AWS-MAR-2026
+GL-2026-0303,2026-03-14,CC-102,6120,Professional & Contractor Fees,160000.00,Engineering Contractor Fees,AP_INVOICE,CTR-2026-0311
+GL-2026-0304,2026-03-18,CC-100,6200,Engineering Tooling,90000.00,Test Hardware and Lab Equipment,AP_INVOICE,TOOL-2026-04
+GL-2026-0305,2026-03-22,CC-100,6800,Local Admin Overhead,140000.00,DevOps SaaS Software Licenses - Engineering,AP_INVOICE,SAAS-2026-Q1
+GL-2026-0306,2026-03-24,CC-102,6120,Professional & Contractor Fees,80000.00,Executive Severance Settlement,AP_INVOICE,SEV-2026-02
+GL-2026-0307,2026-03-28,CC-100,6100,Direct Engineering Payroll,310000.00,Off-Cycle Late Engineering Payroll,PAYROLL,
+GL-2026-0308,2026-03-31,CC-100,7100,Local Facilities,96000.00,Bengaluru Office Facilities and Utilities,AP_INVOICE,FAC-2026-03
+GL-2026-0309,2026-03-31,CC-100,7700,FX Revaluation,340.00,FX Revaluation - Intercompany Balances,GL_ADJ,

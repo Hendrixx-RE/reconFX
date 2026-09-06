@@ -1,0 +1,12 @@
+{
+  "migration_id": "NETSUITE-CUTOVER-2023",
+  "system_from": "LEGACY_ERP",
+  "system_to": "NETSUITE",
+  "cutover_window_start": "2023-04-01",
+  "cutover_window_end": "2023-04-05",
+  "batch_ids": [
+    "CLR-2023-001", "CLR-2023-002", "CLR-2023-003", "CLR-2023-004",
+    "CLR-2023-005", "CLR-2023-006", "CLR-2023-007", "CLR-2023-008",
+    "CLR-2023-009"
+  ]
+}

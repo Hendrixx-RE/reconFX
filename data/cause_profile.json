@@ -1,0 +1,26 @@
+{
+  "entity_id": "ENT-IN-02",
+  "derived_from": "clearing_account_1900_excavation",
+  "plug_months_analysed": 11,
+  "period_range": "2024-06 to 2025-04",
+  "cause_priors": [
+    {
+      "cause": "TIMING_UNBILLED",
+      "occurrences": 0,
+      "prior": 0.0,
+      "signature": "eligible-account cost posted after billing_cutoff_day_of_month"
+    },
+    {
+      "cause": "UNRESOLVED",
+      "occurrences": 11,
+      "prior": 1.0,
+      "signature": "no corresponding late-payroll posting found in this month"
+    }
+  ],
+  "recommended_hypothesis_order": [
+    "TIMING_UNBILLED",
+    "MISCLASSIFICATION",
+    "APPROVED_EXCLUSION",
+    "FX_REVALUATION"
+  ]
+}
