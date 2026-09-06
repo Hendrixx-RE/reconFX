@@ -1,1 +1,3 @@
-# reconFX dependencies — to be populated
+pytest>=8.0.0
+pandas>=2.0.0
+reportlab>=4.0.0
