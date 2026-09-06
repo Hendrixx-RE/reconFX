@@ -234,6 +234,18 @@ def draft_journal_entry(
 def escalate(reason: str, residual_usd: float, evidence_gap: list[str], packet: dict) -> dict:
     """Halts execution. Emits the controller packet naming exactly what
     evidence would close the gap."""
+    try:
+        from integrations.voice_client import generate_escalation_briefing
+
+        voice_packet = dict(packet) if isinstance(packet, dict) else {}
+        if "residual_usd" not in voice_packet and residual_usd is not None:
+            voice_packet["residual_usd"] = residual_usd
+        if "evidence_gap" not in voice_packet and evidence_gap is not None:
+            voice_packet["evidence_gap"] = evidence_gap
+        generate_escalation_briefing(voice_packet)
+    except Exception:
+        pass
+
     return {
         "halted": True,
         "reason": reason,
