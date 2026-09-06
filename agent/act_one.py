@@ -241,7 +241,13 @@ def _derive_cause_profile(plug_rows: list[dict]) -> dict:
 
 
 if __name__ == "__main__":
-    result = run_act_one(on_event=lambda e: print(e))
+    from integrations.ao_client import handle_event
+
+    def _on_event(e: dict) -> None:
+        print(e)
+        handle_event(e)
+
+    result = run_act_one(on_event=_on_event)
     print("\n--- SUMMARY ---")
     print(f"Opening balance: {result['opening_balance']}")
     print(f"Residual after all strata: {result['residual']}")
