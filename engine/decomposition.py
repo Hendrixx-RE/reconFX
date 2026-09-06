@@ -1,16 +1,23 @@
-"""
-STUB (reference-complete) — Phase 2 owner may replace/refine, but the public
-contract below must not change without updating agent/ callers:
+"""Decomposition state and exclusivity guarantee (PLAN.md §3.2-3.5).
 
-    DecompositionState(opening_amount, materiality)
+Public contract (do not change without updating agent/ callers):
+
+    DecompositionState(opening_amount, materiality, target_markup=0.10, amount_lookup=None)
     DecompositionState.test_hypothesis(cause_id, classification, transaction_ids, evidence_refs) -> HypothesisResult
     DecompositionState.residual -> Decimal
     DecompositionState.is_fully_explained -> bool
     DecompositionState.audit_trail() -> list[dict]
 
-This is pure set/arithmetic logic (PLAN.md §3.2-3.5) with no data/ dependency,
-so it is implemented fully rather than faked. The engine — never the LLM —
-decides alpha and computes every dollar figure.
+The LLM/agent layer never supplies a dollar amount — only which
+transactions belong to a hypothesis and how to classify it. This module
+resolves alpha, looks up amounts, sums them, and enforces the exclusivity
+and materiality gates. Section 3.3's exclusivity constraint
+
+    T_i ∩ T_j = ∅   for all i != j
+
+is enforced in test_hypothesis() below; it is the single most important
+guarantee in the project, since it is what makes double-counting a
+transaction structurally impossible rather than merely unlikely.
 """
 
 from dataclasses import dataclass, field
@@ -19,15 +26,14 @@ from typing import Optional
 
 # classification -> alpha (PLAN.md §3.4). Never settable by the caller/model.
 _ALPHA = {
-    # Act II classifications
-    "TIMING_UNBILLED": None,       # resolved to m_target at call time if provided
-    "MISCLASSIFICATION": None,     # resolved to m_target at call time if provided
-    "APPROVED_EXCLUSION": None,    # resolved to m_target at call time if provided
+    # Act II classifications (§3.4)
+    "TIMING_UNBILLED": None,       # resolves to target_markup
+    "MISCLASSIFICATION": None,     # resolves to target_markup
+    "APPROVED_EXCLUSION": None,    # resolves to target_markup
     "FX_REVALUATION": Decimal("1.0"),
     "GENUINE_TP_DEVIATION": Decimal("1.0"),
-    # Act I classifications (PLAN.md §3.7 — alpha = 1.0 for every stratum;
-    # these are full dollar-amount clearing-account strata, not markup-only
-    # deviations, so none of them resolve through target_markup).
+    # Act I classifications (§3.7 — alpha = 1.0 for every stratum; these are
+    # full dollar-amount clearing-account strata, never markup-only)
     "ERP_CUTOVER_ARTIFACT": Decimal("1.0"),
     "UNREVERSED_FX_REVALUATION": Decimal("1.0"),
     "DUPLICATE_AP_VENDOR_FEED": Decimal("1.0"),
@@ -59,17 +65,17 @@ def quantify_factor(
     Used for findings that sit on a separate axis from the tracked residual
     — e.g. PLAN.md §2.4 H4: a cost misclassified into an *excluded* account
     was never part of the original deviation's transaction universe, so
-    quantifying its markup impact must not decrement DecompositionState's
-    residual. It is a recovery finding, not a factor.
+    quantifying its markup impact must not decrement the tracked residual.
+    It is a recovery finding, not a factor.
     """
-    fixed = _ALPHA.get(classification)
-    if fixed is None and classification not in _ALPHA:
+    if classification not in _ALPHA:
         raise ValueError(f"Unknown classification: {classification}")
+    fixed = _ALPHA[classification]
     alpha = fixed if fixed is not None else target_markup
     missing = [t for t in transaction_ids if t not in amount_lookup]
     if missing:
         raise KeyError(f"No amount on file for transaction id(s): {missing}")
-    total = sum(Decimal(amount_lookup[t]) for t in transaction_ids)
+    total = sum((Decimal(amount_lookup[t]) for t in transaction_ids), Decimal("0"))
     return alpha * total
 
 
@@ -85,10 +91,10 @@ class DecompositionState:
         amount_lookup: Optional[dict[str, Decimal]] = None,
     ):
         """
-        amount_lookup maps transaction_id -> Decimal(amount_usd), sourced from
-        data/ (e.g. entity_gl.csv, clearing_ledger.csv) by whoever constructs
-        this state. The engine looks amounts up itself; the caller/LLM never
-        supplies a dollar figure.
+        amount_lookup maps transaction_id -> Decimal(amount_usd), sourced
+        from data/ (entity_gl.csv, clearing_ledger.csv, ...) by whoever
+        constructs this state. The engine looks amounts up itself; the
+        caller/LLM never supplies a dollar figure.
         """
         self._residual = Decimal(opening_amount)
         self._materiality = Decimal(materiality)
@@ -113,7 +119,7 @@ class DecompositionState:
         txn_set = set(transaction_ids)
 
         # 1. Exclusivity: reject if this set intersects any accepted set.
-        for other_cause, other_set in self._accepted_sets.items():
+        for other_set in self._accepted_sets.values():
             overlap = txn_set & other_set
             if overlap:
                 result = HypothesisResult(
@@ -135,7 +141,7 @@ class DecompositionState:
         missing = [t for t in transaction_ids if t not in self._amount_lookup]
         if missing:
             raise KeyError(f"No amount on file for transaction id(s): {missing}")
-        total = sum(Decimal(self._amount_lookup[t]) for t in transaction_ids)
+        total = sum((Decimal(self._amount_lookup[t]) for t in transaction_ids), Decimal("0"))
         factor = alpha * total
 
         # 4. Materiality gate.
@@ -151,7 +157,8 @@ class DecompositionState:
             self._log(result, evidence_refs)
             return result
 
-        # 5. Accept: record set, decrement residual.
+        # 5. Accept: record set, decrement residual. Reject rather than let
+        #    the residual go negative (over-explanation, §10.2 attack #9).
         new_residual = self._residual - factor
         if new_residual < 0:
             result = HypothesisResult(
