@@ -605,7 +605,16 @@ DODO_ENV=test
 
 The hackathon expects the sponsor stack to be used. Each entry below states what it does, why it is the right fit, and — most importantly — **what a judge sees on screen that proves it was used**. Decorative integrations are worse than none; a judge who spots one discounts the rest.
 
-## 6.1 Agent Orchestrator — mandatory, load-bearing
+The sponsor integrations are split across two parallel execution tracks:
+- **Track A (Ledger, backend & API):** §6.1 Agent Orchestrator, §6.4 Neatlogs
+- **Track B (Payments, cost, console experience & delivery):** §6.3 Dodo Payments, §6.5 Tensormux cost meter, §6.6 AI Grants voice (optional)
+- **Shared Philosophy / Positioning:** §6.2 Maximor AI (conceptual alignment across both tracks)
+
+---
+
+## Track A — Ledger, backend & API
+
+### 6.1 Agent Orchestrator — mandatory, load-bearing
 
 **Role:** the immutable audit ledger. Not a wrapper, not a mention.
 
@@ -664,32 +673,7 @@ Handlers.add("GetLedger",
 
 **Reliability:** run a local `aos` instance during recording. Wrap `ao_client` calls in a non-blocking queue so network latency cannot stall the agent loop.
 
-## 6.2 Maximor AI — the philosophy, executed
-
-**Role:** reconFX is positioned as a specialist forensic layer that sits beside Maximor's close automation, not against it. Maximor's flux analysis explains variance at financial-statement line level; reconFX explains it at operational-event level and hands back structured JE payloads Maximor could ingest.
-
-Make the alignment explicit and visible in the UI, mapped to Maximor's own **Learn → Run → Escalate → Improve**:
-
-| Maximor stage | reconFX implementation |
-|---|---|
-| **Learn** | Act I excavates 38 months and derives the entity's cause profile |
-| **Run** | Act II runs the live close investigation using that profile |
-| **Escalate** | The $5,000 residual halts and routes to the controller with an evidence gap statement |
-| **Improve** | The controller's decision writes back to `cause_profile.json` and the AO ledger, updating priors for April |
-
-**Proof on screen:** label the four console stages with those words. When the controller approves, show the prior update: `TIMING_UNBILLED 0.64 → 0.67`. That is a closed learning loop, demonstrated in three seconds.
-
-## 6.3 Dodo Payments — a real payment, not a ceremony
-
-**Role:** collection of the $263,000 receivable recovered in Act I.
-
-Note the deliberate choice. Routing an *intercompany true-up* through a payment rail is decorative — intercompany balances settle through treasury, not a payment gateway, and an accountant on the panel will notice. What Act I surfaces instead is a **live, external, collectible customer receivable** that stopped being invoiced in August 2024. Reinstating and collecting that is a genuine payment action.
-
-Flow: controller reviews stratum 5 → approves collection → `dodo_client.create_payment_link()` creates a hosted invoice for `CUST-4471` → the link is shown in the console → the AO ledger records `APPROVE_COLLECTION` with the Dodo reference.
-
-**Proof on screen:** a real Dodo test-mode payment link, opened in a second browser tab during the demo.
-
-## 6.4 Neatlogs — the reasoning is inspectable
+### 6.4 Neatlogs — the reasoning is inspectable
 
 **Role:** full execution tracing. Every tool call, model turn, latency figure, hypothesis acceptance and **rejection** is a span.
 
@@ -715,7 +699,21 @@ def test_hypothesis(...): ...
 
 **Proof on screen:** a live Neatlogs trace link in the console header. Open it during the demo and scroll to the rejected-hypothesis span. Wrap all Neatlogs calls in `try/except` so a rate limit cannot break the run.
 
-## 6.5 Tensormux — routing with a visible number
+---
+
+## Track B — Payments, cost, console experience & delivery
+
+### 6.3 Dodo Payments — a real payment, not a ceremony
+
+**Role:** collection of the $263,000 receivable recovered in Act I.
+
+Note the deliberate choice. Routing an *intercompany true-up* through a payment rail is decorative — intercompany balances settle through treasury, not a payment gateway, and an accountant on the panel will notice. What Act I surfaces instead is a **live, external, collectible customer receivable** that stopped being invoiced in August 2024. Reinstating and collecting that is a genuine payment action.
+
+Flow: controller reviews stratum 5 → approves collection → `dodo_client.create_payment_link()` creates a hosted invoice for `CUST-4471` → the link is shown in the console → the AO ledger records `APPROVE_COLLECTION` with the Dodo reference.
+
+**Proof on screen:** a real Dodo test-mode payment link, opened in a second browser tab during the demo.
+
+### 6.5 Tensormux — routing with a visible number
 
 **Role:** model gateway with cost-aware routing.
 
@@ -726,13 +724,32 @@ def test_hypothesis(...): ...
 
 **Proof on screen:** a cost meter in the console footer showing calls per route and total cost for the investigation, e.g. `Fast: 6 calls · Strong: 4 calls · $0.--`. Then the comparison line: a controller doing this manually costs 4–8 hours. That single number does more competitive work than a slide.
 
-## 6.6 AI Grants India — the escalation gets a voice
+### 6.6 AI Grants India — the escalation gets a voice
 
 **Role:** voice credits, used for the one moment where voice is genuinely better than text.
 
 When the agent escalates the $5,000 residual, it generates a spoken 20-second controller briefing: what was found, what was explained, what remains, what evidence would close it. A controller reviewing escalations on a phone during close week listens rather than reads.
 
 Keep this strictly optional. It is the **first thing cut** if Phase 4 runs long, and its absence costs nothing.
+
+---
+
+## Shared Product Alignment
+
+### 6.2 Maximor AI — the philosophy, executed
+
+**Role:** reconFX is positioned as a specialist forensic layer that sits beside Maximor's close automation, not against it. Maximor's flux analysis explains variance at financial-statement line level; reconFX explains it at operational-event level and hands back structured JE payloads Maximor could ingest.
+
+Make the alignment explicit and visible in the UI, mapped to Maximor's own **Learn → Run → Escalate → Improve**:
+
+| Maximor stage | reconFX implementation |
+|---|---|
+| **Learn** | Act I excavates 38 months and derives the entity's cause profile |
+| **Run** | Act II runs the live close investigation using that profile |
+| **Escalate** | The $5,000 residual halts and routes to the controller with an evidence gap statement |
+| **Improve** | The controller's decision writes back to `cause_profile.json` and the AO ledger, updating priors for April |
+
+**Proof on screen:** label the four console stages with those words. When the controller approves, show the prior update: `TIMING_UNBILLED 0.64 → 0.67`. That is a closed learning loop, demonstrated in three seconds.
 
 ---
 
@@ -961,6 +978,25 @@ compute_baseline()
 
 ---
 
+## Parallel Execution Plan: Phases 4 – 6 (Two-Track Split)
+
+Phases 1 through 3 are complete. The remaining build (Phases 4–6, hours 5:45–10:00) is split across **two parallel tracks** executed simultaneously by two people within the existing time windows:
+
+- **Track A — Ledger, backend & API:**
+  - §6.1 Agent Orchestrator (mandatory), §6.4 Neatlogs
+  - Phase 5: the FastAPI+WebSocket API layer (`api/main.py`, `api/events.py` per Appendix B schema — noted in Section 5.1 as a component, itemized explicitly under Phase 5 deliverables), `TraceStream.jsx`, `EvidenceCard.jsx`, `ApprovalModal.jsx` (these three surface AO/Neatlogs data)
+  - Phase 6: graceful-degradation checks for AO + Neatlogs specifically, verifying AO ledger via `GetLedger`, opening the Neatlogs trace and finding the rejected FX span, the replay-fixture backend wiring, and the 30-second verification appendix recording
+- **Track B — Payments, cost, console experience & delivery:**
+  - §6.3 Dodo Payments, §6.5 Tensormux cost meter, §6.6 AI Grants voice (optional)
+  - Phase 5: `StrataColumn.jsx`, `ResidualWaterfall.jsx`, `CostMeter.jsx`, the overall `App.jsx` shell/layout/design system per the mockup and "Design direction" guidance
+  - Phase 6: graceful-degradation checks for Dodo + Tensormux + voice, the three timed dry runs, and demo capture/recording per Section 8
+- **Shared / Joint Reference Material:**
+  - `tests/test_attacks.py` (10 scenarios in §10.2 — mostly exercises engine/agent logic already built in Phase 1–3; either track can own it, note it needs coordination between both tracks).
+  - Sections 8 (Demo script), 9 (Judge Q&A), 10.1 (Top risks), and 10.3 (Do-not-build list) remain shared reference material used by both tracks — preserved intact below.
+- **Timing & Windows:** Both tracks work concurrently within each phase's existing window (5:45–10:00 total) rather than extending total time. Exit criteria are joint: both tracks must hit their respective gates together before moving to the next phase.
+
+---
+
 ## PHASE 4 — Sponsor integration layer
 **Hours 5:45 – 7:00**
 
@@ -969,6 +1005,7 @@ Wire AO, Neatlogs, Dodo, and the Tensormux cost meter so that each produces on-s
 
 ### Deliverables
 
+#### Track A:
 **Agent Orchestrator (priority 1 — mandatory).**
 - Deploy `ao/reconfx_ledger.lua` to a local `aos` process
 - `integrations/ao_client.py` with a non-blocking send queue and a 2-second timeout
@@ -982,6 +1019,7 @@ Wire AO, Neatlogs, Dodo, and the Tensormux cost meter so that each produces on-s
 - Surface the live trace URL through the API for the console header
 - All calls wrapped in `try/except`
 
+#### Track B:
 **Dodo Payments (priority 3).**
 - `integrations/dodo_client.py`, test mode
 - `create_collection(customer_ref, amount_usd, description)` returning a hosted link
@@ -997,19 +1035,29 @@ Wire AO, Neatlogs, Dodo, and the Tensormux cost meter so that each produces on-s
 - Play in the console on escalation
 
 ### Acceptance test
-- Kill the network. Both acts still complete with correct numbers; integration failures are logged, not fatal.
+
+#### Track A:
 - Query the AO process directly and confirm the step list matches the console.
 - Open the Neatlogs trace and locate the rejected FX span.
+
+#### Track B:
 - Open the Dodo test link in a browser.
 
+#### Joint:
+- Kill the network. Both acts still complete with correct numbers; integration failures are logged, not fatal.
+
 ### Exit criterion
-All four mandatory integrations produce verifiable artifacts, and every one degrades gracefully.
+**Joint (both tracks):** All four mandatory integrations produce verifiable artifacts, and every one degrades gracefully.
 
 ### Cut list
+
+#### Track A:
+4. **Never cut AO.** The organisers will inspect for it specifically.
+
+#### Track B:
 1. Voice briefing (cut first).
 2. Cost meter becomes a static computed figure.
 3. Dodo becomes a stub link with the API call shown in code during the demo.
-4. **Never cut AO.** The organisers will inspect for it specifically.
 
 ---
 
@@ -1073,27 +1121,47 @@ Specific direction:
 - **Copy is plain and active.** "Approve true-up" produces "True-up approved." The escalation empty state says what evidence is missing, not that something went wrong.
 
 ### Deliverables
+
+#### Track A:
+- The FastAPI+WebSocket API layer (`api/main.py`, `api/events.py` per Appendix B schema — noted in Section 5.1 as a component, itemized explicitly here to surface AO/Neatlogs data to the console)
 - `TraceStream.jsx` — append-only event log with tool calls, evidence refs, accept/reject markers, AO message IDs
-- `StrataColumn.jsx` — Act I strata, each expandable to its evidence card
-- `ResidualWaterfall.jsx` — Act II stepped descent, with the rejected hypothesis shown as a struck-through step
 - `EvidenceCard.jsx` — for each factor: transaction IDs, source documents, classification, disposition, AO message ID
 - `ApprovalModal.jsx` — the draft true-up JE, evidence chain, evidence gap statement, approve / reject
+
+#### Track B:
+- The overall `App.jsx` shell/layout/design system per the mockup and "Design direction" guidance
+- `StrataColumn.jsx` — Act I strata, each expandable to its evidence card
+- `ResidualWaterfall.jsx` — Act II stepped descent, with the rejected hypothesis shown as a struck-through step
 - `CostMeter.jsx` — Tensormux route counts
 
 ### Acceptance test
+
+#### Track A:
+- The approve action reaches AO and returns a confirmation.
+
+#### Track B:
+- A full run streams end to end with no manual refresh.
+- Every displayed figure matches Section 4.
+- The recovery finding is visually distinct from residual reductions.
+
+#### Joint:
 - A full run streams end to end with no manual refresh.
 - Every displayed figure matches Section 4.
 - The approve action reaches AO and returns a confirmation.
 - The recovery finding is visually distinct from residual reductions.
 
 ### Exit criterion
-The full two-act narrative is watchable on one screen without the operator touching a terminal.
+**Joint (both tracks):** The full two-act narrative is watchable on one screen without the operator touching a terminal.
 
 ### Cut list
+
+#### Track A:
 1. Evidence cards become tooltips.
+4. **Never cut the approval modal.** It is the human-judgment criterion made visible.
+
+#### Track B:
 2. `StrataColumn` becomes a styled table (keep the depth ordering).
 3. Cost meter becomes static text.
-4. **Never cut the approval modal.** It is the human-judgment criterion made visible.
 
 ---
 
@@ -1105,11 +1173,23 @@ Make the demo unbreakable and record it. Build nothing new.
 
 ### Deliverables
 
+#### Shared / Joint:
+- Run `tests/test_attacks.py` covering the scenarios in Section 10.2 (mostly exercises engine/agent logic already built in Phase 1-3, either track can own it, note it needs coordination)
+
+#### Track A:
 **Hardening (0:45)**
-- Run `tests/test_attacks.py` covering the scenarios in Section 10.2
-- Confirm graceful degradation with each integration disabled in turn
+- Confirm graceful degradation with each integration disabled in turn (graceful-degradation checks for AO + Neatlogs specifically)
+- Verify AO ledger via `GetLedger` (querying the aos process terminal directly to confirm all steps and decisions)
+- Open the Neatlogs trace and locate the rejected FX span
 - Set a fixed model temperature and cache the successful run's tool outputs as a replay fixture
 - Add `--replay` to the CLI, replaying the fixture with real timing but no network. **This is the demo insurance policy.**
+
+**Capture (0:15)**
+- Record a 30-second appendix: the aos terminal `GetLedger` query and the Neatlogs trace, for judges who want to verify
+
+#### Track B:
+**Hardening (0:45)**
+- Confirm graceful degradation with each integration disabled in turn (graceful-degradation checks for Dodo + Tensormux + voice)
 
 **Dry runs (0:15)**
 - Three full runs, timed. Target 2:50 to leave headroom.
@@ -1117,10 +1197,33 @@ Make the demo unbreakable and record it. Build nothing new.
 
 **Capture (0:15)**
 - Record the 3-minute demo per Section 8
-- Record a 30-second appendix: the aos terminal `GetLedger` query and the Neatlogs trace, for judges who want to verify
+
+### Acceptance test
+
+#### Track A:
+- Confirm graceful degradation with AO and Neatlogs disabled.
+- Query AO process directly via `GetLedger` and confirm step list matches console.
+- Open Neatlogs trace and find the rejected FX span.
+- Verify `--replay` flag runs fixture with real timing and no network.
+
+#### Track B:
+- Confirm graceful degradation with Dodo, Tensormux, and voice disabled.
+- Three full runs, timed under 2:50 with zero operator touchpoints.
+- 3-minute demo recorded per Section 8.
+
+#### Joint:
+- Run `tests/test_attacks.py` covering the scenarios in Section 10.2 with zero failures.
 
 ### Exit criterion
-The recorded demo exists and runs to completion without operator intervention. Submit it. Do not keep polishing.
+**Joint (both tracks):** The recorded demo exists and runs to completion without operator intervention. Submit it. Do not keep polishing.
+
+### Cut list
+
+#### Track A:
+- Skip live aos recording if short on time; fall back to static terminal screenshot.
+
+#### Track B:
+- Cut third dry run if runs 1 and 2 are clean; do not over-polish video transitions.
 
 ---
 
@@ -1187,6 +1290,8 @@ For one entity-month, yes — four to eight hours. For 38 months of a clearing a
 | Scope creep in Phase 5 | Cut list is ordered and non-negotiable |
 
 ## 10.2 Attack scenarios for `tests/test_attacks.py`
+
+*(Shared / Joint: exercises engine and agent logic already built in Phases 1–3; either track can own it, requires coordination between Track A and Track B)*
 
 | # | Scenario | Required behaviour |
 |---|---|---|
