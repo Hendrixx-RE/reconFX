@@ -1,1 +1,53 @@
-"""reconFX engine package."""
+"""reconFX deterministic financial engine package."""
+
+from .baseline import (
+    BaselineResult,
+    compute_baseline,
+    compute_e_naive,
+)
+from .decomposition import (
+    ALPHA_BY_CLASSIFICATION,
+    APPROVED_EXCLUSION,
+    CONTINUE,
+    ESCALATE,
+    FULLY_EXPLAINED,
+    FX_REVALUATION,
+    GENUINE_TP_DEVIATION,
+    MISCLASSIFICATION,
+    TIMING_UNBILLED,
+    AlphaRegistry,
+    ExclusivityError,
+    TerminationStatus,
+    check_exclusivity,
+    check_termination,
+    compute_residual,
+    get_alpha,
+    passes_materiality_gate,
+    quantify_factor,
+    resolve_alpha,
+)
+
+__all__ = [
+    "BaselineResult",
+    "compute_baseline",
+    "compute_e_naive",
+    "ALPHA_BY_CLASSIFICATION",
+    "APPROVED_EXCLUSION",
+    "CONTINUE",
+    "ESCALATE",
+    "FULLY_EXPLAINED",
+    "FX_REVALUATION",
+    "GENUINE_TP_DEVIATION",
+    "MISCLASSIFICATION",
+    "TIMING_UNBILLED",
+    "AlphaRegistry",
+    "ExclusivityError",
+    "TerminationStatus",
+    "check_exclusivity",
+    "check_termination",
+    "compute_residual",
+    "get_alpha",
+    "passes_materiality_gate",
+    "quantify_factor",
+    "resolve_alpha",
+]
