@@ -47,7 +47,7 @@ const DISPOSITION_LABELS = {
  * Displays substantiated factor data, transaction IDs, source documents,
  * classification, disposition, and immutable AO message reference.
  */
-export default function EvidenceCard({ factor }) {
+export default function EvidenceCard({ factor, onClose }) {
   if (!factor) {
     return (
       <div
@@ -151,17 +151,36 @@ export default function EvidenceCard({ factor }) {
           </h3>
         </div>
 
-        <div
-          style={{
-            fontFamily: 'var(--font-figures, monospace)',
-            fontVariantNumeric: 'tabular-nums',
-            fontSize: '16px',
-            fontWeight: 600,
-            color: accentColor,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {formatUSD(factor_usd)}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div
+            style={{
+              fontFamily: 'var(--font-figures, monospace)',
+              fontVariantNumeric: 'tabular-nums',
+              fontSize: '16px',
+              fontWeight: 600,
+              color: accentColor,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {formatUSD(factor_usd)}
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              aria-label="Close evidence card"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#8b949e',
+                cursor: 'pointer',
+                fontSize: '14px',
+                padding: '2px 4px',
+                lineHeight: '1',
+              }}
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 
