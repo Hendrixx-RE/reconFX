@@ -134,6 +134,8 @@ def run_act_one(on_event: Optional[Callable[[dict], None]] = None) -> dict:
     # Stratum 5 — Live collectible receivable
     receivable_ids = [row["doc_id"] for row in items if row.get("customer_ref")]
     if receivable_ids:
+        from integrations import dodo_client
+
         r = loop.call_tool(
             "test_hypothesis",
             tools.test_hypothesis,
@@ -144,7 +146,18 @@ def run_act_one(on_event: Optional[Callable[[dict], None]] = None) -> dict:
                 "evidence_refs": ["data/customer_contracts.json"] + ledger["evidence_refs"],
             },
         )
-        strata_results.append(_record_stratum(loop, "LIVE_COLLECTIBLE_RECEIVABLE", r, "Live collectible receivable"))
+        stratum_5 = _record_stratum(loop, "LIVE_COLLECTIBLE_RECEIVABLE", r, "Live collectible receivable")
+        collection = dodo_client.create_collection(
+            customer_ref="CUST-4471",
+            amount_usd=263000.00,
+            description="Reinstated customer receivable (CUST-4471)",
+        )
+        stratum_5["payment_link"] = collection.get("payment_link")
+        stratum_5["payment_reference"] = collection.get("payment_id")
+        stratum_5["dodo_reference"] = collection.get("payment_id")
+        stratum_5["dodo_collection"] = collection
+        loop.record_hypothesis_event("APPROVE_COLLECTION", collection)
+        strata_results.append(stratum_5)
 
     # Stratum 6 — Untraceable remainder: everything not yet classified.
     classified_ids = set(cutover_ids) | set(fx_ids) | set(dup_ids) | set(plug_ids) | set(receivable_ids)
