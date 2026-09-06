@@ -1,0 +1,2 @@
+"""Event schema."""
+pass
