@@ -1,2 +1,0 @@
-"""Neatlogs setup."""
-pass

@@ -1,2 +1,0 @@
-"""Dodo client."""
-pass

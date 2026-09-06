@@ -1,2 +1,0 @@
-"""System + hypothesis prompts."""
-pass

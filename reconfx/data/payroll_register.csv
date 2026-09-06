@@ -1,3 +1,0 @@
-payroll_id,employee_group,cost_center,service_period_start,service_period_end,posting_date,gross_pay_usd,pay_type
-PAY-2026-M1,ENG-FULLTIME,CC-100,2026-03-01,2026-03-25,2026-03-05,1700000.00,REGULAR
-PAY-2026-M2,ENG-CONTRACT,CC-100,2026-03-01,2026-03-25,2026-03-28,310000.00,OFF_CYCLE_LATE

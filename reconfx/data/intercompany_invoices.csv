@@ -1,2 +1,0 @@
-invoice_id,invoice_date,provider_entity,recipient_entity,billed_cost_base_usd,markup_applied_percent,total_billed_usd,fx_rate_applied
-INV-IC-2026-03,2026-03-25,ENT-IN-02,ENT-US-01,2370000.00,9.79,2602000.00,83.50
