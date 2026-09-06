@@ -26,10 +26,30 @@ DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 def span(kind: str):
     """Placeholder for @neatlogs.span(kind=...). Phase 4 replaces the body
     with real instrumentation; call sites do not change."""
+    import os
 
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
+            if os.environ.get("NEATLOGS_API_KEY"):
+                try:
+                    import neatlogs
+
+                    try:
+                        import integrations.neatlogs_setup as nsetup
+
+                        if not getattr(nsetup, "_initialized", False):
+                            nsetup.init_neatlogs()
+                    except ImportError:
+                        pass
+                    if hasattr(neatlogs, "span"):
+                        return neatlogs.span(kind=kind)(fn)(*args, **kwargs)
+                except Exception as exc:
+                    tb = exc.__traceback__
+                    while tb:
+                        if tb.tb_frame.f_code is fn.__code__:
+                            raise
+                        tb = tb.tb_next
             try:
                 return fn(*args, **kwargs)
             except Exception:
