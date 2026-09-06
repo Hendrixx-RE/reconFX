@@ -15,12 +15,11 @@ def client():
 
 
 def test_status_endpoint(client):
-    """GET /api/status returns ao_process_id, neatlogs_trace_url, dodo_test_link, and cost_summary."""
+    """GET /api/status returns neatlogs_trace_url, dodo_test_link, and cost_summary."""
     resp = client.get("/api/status")
     assert resp.status_code == 200
     data = resp.json()
 
-    assert "ao_process_id" in data
     assert "neatlogs_trace_url" in data
     assert "dodo_test_link" in data
     assert "cost_summary" in data
@@ -34,7 +33,6 @@ def test_status_endpoint(client):
 
 def test_status_with_env_config(client, monkeypatch):
     """GET /api/status reflects configured environment variables."""
-    monkeypatch.setenv("AO_PROCESS_ID", "test-ao-proc-123")
     monkeypatch.setenv("NEATLOGS_TRACE_URL", "https://app.neatlogs.com/traces/test-trace")
 
     from integrations import neatlogs_setup
@@ -43,7 +41,6 @@ def test_status_with_env_config(client, monkeypatch):
     resp = client.get("/api/status")
     assert resp.status_code == 200
     data = resp.json()
-    assert data["ao_process_id"] == "test-ao-proc-123"
     assert data["neatlogs_trace_url"] == "https://app.neatlogs.com/traces/test-trace"
 
 

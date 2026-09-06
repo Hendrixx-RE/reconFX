@@ -157,9 +157,7 @@ def replay_session(
     orig_fns: Dict[str, Callable] = {}
 
     # Isolate network integrations during replay for zero network dependency
-    from integrations import ao_client, dodo_client, voice_client
-    orig_ao_sender = getattr(ao_client, "_mock_sender", None)
-    ao_client.set_sender(lambda action, payload, timeout: {"ok": True, "replay": True})
+    from integrations import dodo_client, voice_client
 
     orig_dodo_create = dodo_client.create_collection
     def stub_dodo_create(customer_ref: str, amount_usd: float, description: str = ""):
@@ -243,7 +241,6 @@ def replay_session(
         # Restore tools and integration hooks
         for name, orig in orig_fns.items():
             setattr(tools, name, orig)
-        ao_client.set_sender(orig_ao_sender)
         dodo_client.create_collection = orig_dodo_create
         dodo_client.create_payment_link = orig_dodo_create
         if orig_voice_synthesize:

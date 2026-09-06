@@ -4,8 +4,8 @@ Endpoints:
   WS  /ws/events         Streams state events live (Appendix B schema) as Act I / II execute.
   POST /api/run/act-one   Triggers Act I excavation in background, returns run_id immediately.
   POST /api/run/act-two   Triggers Act II investigation in background, returns run_id immediately.
-  GET  /api/status        Returns { ao_process_id, neatlogs_trace_url, dodo_test_link, cost_summary }.
-  POST /api/approve       Records controller decision via integrations.ao_client.record_decision().
+  GET  /api/status        Returns { neatlogs_trace_url, dodo_test_link, cost_summary }.
+  POST /api/approve       Records controller decision and broadcasts a DECISION event.
   GET  /api/events        Returns buffered event history.
   GET  /api/runs/{run_id} Returns status and results of a run.
 """
@@ -33,7 +33,7 @@ from api.events import (
     normalize_event,
     sanitize_value,
 )
-from integrations import ao_client, dodo_client, neatlogs_setup
+from integrations import dodo_client, neatlogs_setup
 
 logger = logging.getLogger("api.main")
 logging.basicConfig(level=logging.INFO)
@@ -236,12 +236,6 @@ def _run_act_one_worker(run_id: str) -> None:
                 if run_id in _runs:
                     _runs[run_id]["events"].append(norm)
 
-            # Record in AO ledger
-            try:
-                ao_client.handle_event(norm)
-            except Exception as exc:
-                logger.debug("AO handle_event failed: %s", exc)
-
             # Broadcast over WebSocket
             manager.broadcast(norm)
 
@@ -290,12 +284,6 @@ def _run_act_two_worker(run_id: str, entity_id: str, period: str) -> None:
             with _runs_lock:
                 if run_id in _runs:
                     _runs[run_id]["events"].append(norm)
-
-            # Record in AO ledger
-            try:
-                ao_client.handle_event(norm)
-            except Exception as exc:
-                logger.debug("AO handle_event failed: %s", exc)
 
             # Broadcast over WebSocket
             manager.broadcast(norm)
@@ -419,14 +407,12 @@ async def trigger_act_two(req: Optional[RunActTwoRequest] = None):
 
 @app.get("/api/status")
 async def get_status():
-    """Returns active system status: AO process ID, Neatlogs trace URL, Dodo test link, cost summary."""
-    ao_pid = ao_client.get_ledger_process_id()
+    """Returns active system status: Neatlogs trace URL, Dodo test link, cost summary."""
     neatlogs_url = neatlogs_setup.get_trace_url()
     dodo_link = get_dodo_test_link()
     cost_summary = model.get_cost_summary()
 
     return {
-        "ao_process_id": ao_pid,
         "neatlogs_trace_url": neatlogs_url,
         "dodo_test_link": dodo_link,
         "cost_summary": cost_summary,
@@ -435,7 +421,7 @@ async def get_status():
 
 @app.post("/api/approve")
 async def approve(req: ApproveRequest):
-    """Records a controller decision (APPROVE | REJECT) to the AO ledger process."""
+    """Records a controller decision (APPROVE | REJECT) and broadcasts a DECISION event."""
     decision_raw = (req.decision or "APPROVE").strip().upper()
 
     if req.decision_type:
@@ -452,23 +438,6 @@ async def approve(req: ApproveRequest):
     ref = req.escalation_id or req.entry_reference or "CONTROLLER_REVIEW"
     actor = req.actor or "controller"
 
-    ao_payload = {
-        "decision_type": dt,
-        "decision": req.decision,
-        "actor": actor,
-        "escalation_id": req.escalation_id,
-        "entry_reference": req.entry_reference,
-        "reference": ref,
-    }
-    if req.notes:
-        ao_payload["notes"] = req.notes
-
-    # Record decision in AO ledger
-    try:
-        ao_client.record_decision(ao_payload)
-    except Exception as exc:
-        logger.warning("Failed recording decision in AO client: %s", exc)
-
     # Broadcast DECISION event
     decision_event = build_decision_event(
         decision_type=dt,
@@ -479,7 +448,6 @@ async def approve(req: ApproveRequest):
         decision=req.decision,
         escalation_id=req.escalation_id,
         entry_reference=req.entry_reference,
-        ao_process_id=ao_client.get_ledger_process_id(),
     )
     _event_store.append(decision_event)
     manager.broadcast(decision_event)
@@ -492,7 +460,6 @@ async def approve(req: ApproveRequest):
         "escalation_id": req.escalation_id,
         "entry_reference": req.entry_reference,
         "actor": actor,
-        "ao_process_id": ao_client.get_ledger_process_id(),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 

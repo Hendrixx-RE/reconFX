@@ -536,7 +536,6 @@ export default function App() {
     estimated_cost_usd: 0.18
   });
   const [escalationPacket, setEscalationPacket] = useState(CANONICAL_ESCALATION);
-  const [aoProcessId, setAoProcessId] = useState('ao-reconfx-2026-03');
   const [neatlogsTraceUrl, setNeatlogsTraceUrl] = useState('https://neatlogs.com/traces/tr-recon-20260331-01');
 
   // WebSocket Connection to Backend ws://localhost:8000/ws/events
@@ -573,9 +572,6 @@ export default function App() {
               if (parsed.payload.residual_after !== undefined) {
                 setResidual(parsed.payload.residual_after);
               }
-            }
-            if (parsed.payload?.ao_process_id) {
-              setAoProcessId(parsed.payload.ao_process_id);
             }
             if (parsed.payload?.neatlogs_trace_url) {
               setNeatlogsTraceUrl(parsed.payload.neatlogs_trace_url);
@@ -652,7 +648,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      {/* Header: entity/period title, AO process ID + Neatlogs trace link placeholders, Excavate|Close toggle */}
+      {/* Header: entity/period title, Neatlogs trace link placeholder, Excavate|Close toggle */}
       <header className="app-header">
         <div className="header-meta">
           <div className="header-title-row">
@@ -660,11 +656,6 @@ export default function App() {
             <span className="period-badge">March 2026 close</span>
           </div>
           <div className="header-traces-row">
-            <div className="trace-item">
-              <span className="trace-label">AO process:</span>
-              <span className="trace-val">{aoProcessId}</span>
-            </div>
-            <span>·</span>
             <div className="trace-item">
               <span className="trace-label">Neatlogs trace:</span>
               <a

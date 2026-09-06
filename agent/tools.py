@@ -223,7 +223,7 @@ def bind_decomposition_state(state: DecompositionState) -> None:
     _STATE = state
 
 
-@span(kind="DECISION")
+@span(kind="GUARDRAIL")
 def test_hypothesis(
     cause_id: str,
     classification: str,
@@ -283,7 +283,7 @@ def draft_journal_entry(
 # ---------------------------------------------------------------------------
 # 7b. escalate
 # ---------------------------------------------------------------------------
-@span(kind="DECISION")
+@span(kind="GUARDRAIL")
 def escalate(reason: str, residual_usd: float, evidence_gap: list[str], packet: dict) -> dict:
     """Halts execution. Emits the controller packet naming exactly what
     evidence would close the gap."""

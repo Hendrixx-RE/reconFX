@@ -45,7 +45,7 @@ def run_act_one(
     fixture_path: Optional[str | Path] = None,
     respect_timing: bool = True,
     speed: float = 1.0,
-    on_event: Optional[Callable[[dict], None]] = None, entity_id: str = "ENT-IN-02"
+    entity_id: str = "ENT-IN-02",
 ) -> dict:
     """Runs the full Act I excavation. Returns a summary dict and writes
     data/cause_profile.json from the confirmed margin-plug stratum."""
@@ -66,10 +66,12 @@ def run_act_one(
     )
 
     with ctx:
-        return _run_act_one_core(on_event=on_event)
+        return _run_act_one_core(on_event=on_event, entity_id=entity_id)
 
 
-def _run_act_one_core(on_event: Optional[Callable[[dict], None]] = None) -> dict:
+def _run_act_one_core(
+    on_event: Optional[Callable[[dict], None]] = None, entity_id: str = "ENT-IN-02"
+) -> dict:
     loop = ReActLoop(act="EXCAVATION", escalate_fn=tools.escalate, on_event=on_event)
 
     loop.record_hypothesis_event("HYPOTHESIS", {"message": ACT_ONE_TASK_PROMPT})
@@ -297,7 +299,6 @@ def _derive_cause_profile(plug_rows: list[dict]) -> dict:
 
 if __name__ == "__main__":
     import argparse
-    from integrations.ao_client import handle_event
 
     parser = argparse.ArgumentParser(description="reconFX Act I — The Excavation")
     parser.add_argument(
@@ -321,7 +322,6 @@ if __name__ == "__main__":
 
     def _on_event(e: dict) -> None:
         print(e)
-        handle_event(e)
 
     if args.replay:
         result = run_act_one(

@@ -424,7 +424,6 @@ def _run_act_two_core(
 
 if __name__ == "__main__":
     import argparse
-    from integrations.ao_client import handle_event
 
     parser = argparse.ArgumentParser(description="reconFX Act II — The Live Investigation")
     parser.add_argument(
@@ -448,7 +447,6 @@ if __name__ == "__main__":
 
     def _on_event(e: dict) -> None:
         print(e)
-        handle_event(e)
 
     if args.replay:
         result = run_act_two(

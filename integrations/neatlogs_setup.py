@@ -158,10 +158,16 @@ def init_neatlogs() -> None:
                 trace_url = f"https://app.neatlogs.com/traces/{tracker.thread_id}"
 
         if not trace_url:
-            trace_url = "https://app.neatlogs.com/traces/reconfx-two-act-decomposition"
+            # Neatlogs assigns trace IDs per-session at export time; there is no
+            # deterministic pre-init trace URL. Point at the dashboard, scoped by
+            # workflow_name, rather than guessing a path that may not exist.
+            trace_url = "https://app.neatlogs.com"
 
         _trace_url = trace_url
-        logger.info("Neatlogs tracing initialized: %s", _trace_url)
+        logger.info(
+            "Neatlogs tracing initialized (workflow=reconfx-two-act-decomposition): %s",
+            _trace_url,
+        )
 
     except Exception as exc:
         logger.debug("Neatlogs initialization skipped or failed: %s", exc)

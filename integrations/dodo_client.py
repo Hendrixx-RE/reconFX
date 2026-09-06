@@ -44,7 +44,7 @@ def _get_config() -> tuple[str, str, str]:
     if os.environ.get("DODO_BASE_URL"):
         base_url = os.environ["DODO_BASE_URL"].rstrip("/")
     elif env in ("live", "production"):
-        base_url = "https://api.dodopayments.com"
+        base_url = "https://live.dodopayments.com"
     else:
         base_url = "https://test.dodopayments.com"
 

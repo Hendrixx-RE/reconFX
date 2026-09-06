@@ -1,6 +1,6 @@
 """Tests for graceful degradation of integrations (README.md §7 Phase 6).
 
-Verifies that for each integration (AO, Neatlogs, Dodo, Tensormux, and Voice Briefing):
+Verifies that for each integration (Neatlogs, Dodo, Tensormux, and Voice Briefing):
 1. When unconfigured (env vars unset), operations degrade gracefully without crashing.
 2. When configured but unreachable / raising errors, failures are logged and non-fatal.
 3. run_act_one() and run_act_two() complete with the exact canonical numbers from README §4.
@@ -19,7 +19,7 @@ import requests
 from agent import model
 from agent.act_one import run_act_one
 from agent.act_two import run_act_two
-from integrations import ao_client, dodo_client, neatlogs_setup, voice_client
+from integrations import dodo_client, neatlogs_setup, voice_client
 
 
 # Canonical numbers per README §4
@@ -81,70 +81,16 @@ def _assert_canonical_act_two(result: dict) -> None:
 @pytest.fixture(autouse=True)
 def reset_integrations():
     """Clean up integration state and env vars before and after each test."""
-    ao_client.reset_client()
     model.reset_call_counts()
     neatlogs_setup._trace_url = None
     neatlogs_setup._initialized = False
     orig_env = dict(os.environ)
     yield
-    ao_client.reset_client()
     model.reset_call_counts()
     neatlogs_setup._trace_url = None
     neatlogs_setup._initialized = False
     os.environ.clear()
     os.environ.update(orig_env)
-
-
-# ===========================================================================
-# 1. Agent Orchestrator (AO) degradation
-# ===========================================================================
-
-def test_ao_unconfigured():
-    """AO client unconfigured -> no-ops cleanly, both acts complete with canonical numbers."""
-    os.environ.pop("AO_PROCESS_ID", None)
-    os.environ.pop("AO_WALLET_PATH", None)
-    assert not ao_client.is_configured()
-
-    r1 = run_act_one(on_event=ao_client.handle_event)
-    _assert_canonical_act_one(r1)
-
-    r2 = run_act_two(on_event=ao_client.handle_event)
-    _assert_canonical_act_two(r2)
-
-
-def test_ao_unreachable_network_error(monkeypatch):
-    """AO configured but HTTP endpoint unreachable -> logs warning, non-fatal."""
-    os.environ["AO_PROCESS_ID"] = "proc_test_123"
-    os.environ["AO_WALLET_PATH"] = "/fake/wallet.json"
-    os.environ["AO_URL"] = "http://localhost:6363"
-
-    def mock_post(*args, **kwargs):
-        raise requests.ConnectionError("Failed to connect to AO process at localhost:6363")
-
-    monkeypatch.setattr(requests, "post", mock_post)
-
-    r1 = run_act_one(on_event=ao_client.handle_event)
-    _assert_canonical_act_one(r1)
-
-    r2 = run_act_two(on_event=ao_client.handle_event)
-    _assert_canonical_act_two(r2)
-
-
-def test_ao_dispatch_raises(monkeypatch):
-    """AO dispatcher raises unexpected exception -> handle_event catches and logs."""
-    os.environ["AO_PROCESS_ID"] = "proc_test_123"
-    os.environ["AO_WALLET_PATH"] = "/fake/wallet.json"
-
-    def exploding_sender(*args, **kwargs):
-        raise RuntimeError("AO ledger process internal panic")
-
-    ao_client.set_sender(exploding_sender)
-
-    r1 = run_act_one(on_event=ao_client.handle_event)
-    _assert_canonical_act_one(r1)
-
-    r2 = run_act_two(on_event=ao_client.handle_event)
-    _assert_canonical_act_two(r2)
 
 
 # ===========================================================================
@@ -368,11 +314,10 @@ def test_voice_client_raises(monkeypatch):
 def test_all_integrations_disabled_simultaneously(monkeypatch):
     """Acceptance test: simulate total network blackout.
 
-    Confirm that with all 5 integrations unreachable or unconfigured, both acts
+    Confirm that with all 4 integrations unreachable or unconfigured, both acts
     still complete with exact canonical numbers.
     """
     for key in [
-        "AO_PROCESS_ID", "AO_WALLET_PATH", "AO_URL",
         "NEATLOGS_API_KEY", "NEATLOGS_TRACE_URL",
         "DODO_API_KEY", "DODO_BASE_URL",
         "TENSORMUX_API_KEY", "TENSORMUX_BASE_URL",
@@ -387,10 +332,10 @@ def test_all_integrations_disabled_simultaneously(monkeypatch):
 
     monkeypatch.setattr(socket.socket, "connect", blocked_connect)
 
-    r1 = run_act_one(on_event=ao_client.handle_event)
+    r1 = run_act_one()
     _assert_canonical_act_one(r1)
 
-    r2 = run_act_two(on_event=ao_client.handle_event)
+    r2 = run_act_two()
     _assert_canonical_act_two(r2)
 
 
