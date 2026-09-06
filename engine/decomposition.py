@@ -59,6 +59,7 @@ def quantify_factor(
     transaction_ids: list[str],
     amount_lookup: dict[str, Decimal],
     target_markup: Decimal = Decimal("0.10"),
+    cap: Optional[Decimal] = None,
 ) -> Decimal:
     """Pure alpha * sum(amounts) computation with no residual side effects.
 
@@ -76,7 +77,10 @@ def quantify_factor(
     if missing:
         raise KeyError(f"No amount on file for transaction id(s): {missing}")
     total = sum((Decimal(amount_lookup[t]) for t in transaction_ids), Decimal("0"))
-    return alpha * total
+    factor = alpha * total
+    if cap is not None:
+        factor = min(factor, Decimal(str(cap)))
+    return factor
 
 
 class DecompositionState:
@@ -115,6 +119,7 @@ class DecompositionState:
         classification: str,
         transaction_ids: list[str],
         evidence_refs: list[str],
+        cap: Optional[Decimal] = None,
     ) -> HypothesisResult:
         txn_set = set(transaction_ids)
 
@@ -143,6 +148,8 @@ class DecompositionState:
             raise KeyError(f"No amount on file for transaction id(s): {missing}")
         total = sum((Decimal(self._amount_lookup[t]) for t in transaction_ids), Decimal("0"))
         factor = alpha * total
+        if cap is not None:
+            factor = min(factor, Decimal(str(cap)))
 
         # 4. Materiality gate.
         if abs(factor) < self._materiality:

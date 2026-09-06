@@ -19,12 +19,71 @@ used for a dollar figure anywhere in this codebase.
 
 import csv
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 from typing import Optional
 
+from engine.journal import JournalEntry, draft_reversal
+
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+
+
+@dataclass(frozen=True)
+class DuplicateDetectionResult:
+    has_duplicates: bool
+    duplicate_ids: list[str]
+    clean_rows: list[dict]
+    duplicate_rows: list[dict]
+    reversal_entries: list[JournalEntry]
+
+
+def detect_duplicate_gl_rows(rows: list[dict]) -> DuplicateDetectionResult:
+    """Duplicate detector (§10.2 attack #7):
+    Checks for duplicate doc_ids in GL rows.
+    When duplicates are found, fires, drafts reversal journal entries, and excludes duplicates from the base.
+    """
+    seen_ids = set()
+    dup_ids = set()
+    for r in rows:
+        doc_id = r["doc_id"]
+        if doc_id in seen_ids:
+            dup_ids.add(doc_id)
+        seen_ids.add(doc_id)
+
+    clean_rows: list[dict] = []
+    duplicate_rows: list[dict] = []
+    reversals: list[JournalEntry] = []
+    seen_clean = set()
+
+    for r in rows:
+        doc_id = r["doc_id"]
+        if doc_id in dup_ids:
+            if doc_id not in seen_clean:
+                seen_clean.add(doc_id)
+                clean_rows.append(r)
+            else:
+                duplicate_rows.append(r)
+                reversals.append(
+                    draft_reversal(
+                        amount=Decimal(str(r["amount_usd"])),
+                        account=r["gl_account"],
+                        offset_account="1900",
+                        description=f"Duplicate GL doc {doc_id}: {r.get('description', '')}",
+                        entity=r.get("entity_id", ""),
+                        evidence=[f"data/entity_gl.csv#{doc_id}"],
+                    )
+                )
+        else:
+            clean_rows.append(r)
+
+    return DuplicateDetectionResult(
+        has_duplicates=bool(dup_ids),
+        duplicate_ids=sorted(dup_ids),
+        clean_rows=clean_rows,
+        duplicate_rows=duplicate_rows,
+        reversal_entries=reversals,
+    )
 
 
 @dataclass(frozen=True)
@@ -80,7 +139,9 @@ def compute_baseline(entity_id: str, period: str, precision: int = 4) -> Baselin
         and row["gl_account"] in eligible_gl_accounts
         and row["cost_center"] in eligible_cost_centers
     ]
-    eligible_base = sum((Decimal(row["amount_usd"]) for row in gl_rows), Decimal("0"))
+    dup_res = detect_duplicate_gl_rows(gl_rows)
+    clean_gl_rows = dup_res.clean_rows
+    eligible_base = sum((Decimal(row["amount_usd"]) for row in clean_gl_rows), Decimal("0"))
 
     invoice_lines = [
         row for row in _load_invoice_lines() if row["recharge_flag"] == "Y"
@@ -112,3 +173,76 @@ def compute_baseline(entity_id: str, period: str, precision: int = 4) -> Baselin
         deviation=deviation,
         materiality=materiality,
     )
+
+
+def check_mapping_conflict(gl_row: dict, policy: dict) -> dict:
+    """Flags conflict between GL description and account mapping (§10.2 attack #3).
+    Applies document precedence order from policy and records the override explicitly.
+    """
+    desc = gl_row.get("description", "").lower()
+    account = gl_row.get("gl_account", "")
+    account_desc = gl_row.get("account_description", "").lower()
+    excluded_accounts = set(policy.get("excluded_gl_accounts", []))
+    eligible_accounts = set(policy.get("eligible_gl_accounts", []))
+
+    indicates_rechargeable = any(
+        kw in desc or kw in account_desc
+        for kw in ["rechargeable", "recharge", "engineering", "devops", "cloud"]
+    )
+    is_excluded = account in excluded_accounts or (eligible_accounts and account not in eligible_accounts)
+
+    has_conflict = bool(indicates_rechargeable and is_excluded)
+    if not has_conflict:
+        return {"has_conflict": False}
+
+    precedence = policy.get(
+        "document_precedence",
+        [
+            "APPROVED_POLICY_EXCEPTION_MEMO",
+            "INTERCOMPANY_CONTRACT",
+            "TP_POLICY_GL_MAPPING",
+            "GL_LINE_DESCRIPTION",
+        ],
+    )
+
+    mapping_rank = precedence.index("TP_POLICY_GL_MAPPING") if "TP_POLICY_GL_MAPPING" in precedence else 999
+    desc_rank = precedence.index("GL_LINE_DESCRIPTION") if "GL_LINE_DESCRIPTION" in precedence else 999
+
+    if mapping_rank < desc_rank:
+        winner = "TP_POLICY_GL_MAPPING"
+        overridden = "GL_LINE_DESCRIPTION"
+    else:
+        winner = "GL_LINE_DESCRIPTION"
+        overridden = "TP_POLICY_GL_MAPPING"
+
+    override_record = f"{winner} overrides {overridden}"
+
+    return {
+        "has_conflict": True,
+        "conflict_type": "MAPPING_CONFLICT",
+        "doc_id": gl_row.get("doc_id"),
+        "account": account,
+        "description": gl_row.get("description"),
+        "resolved_by": winner,
+        "overridden": overridden,
+        "override_record": override_record,
+        "treatment": "EXCLUDE_FROM_BASE" if winner == "TP_POLICY_GL_MAPPING" else "INCLUDE_IN_BASE",
+    }
+
+
+def check_policy_effective_date(policy: dict, posting_date: str) -> bool:
+    """Checks whether posting date falls within policy effective date range (§10.2 attack #4)."""
+    start = policy.get("effective_date", "")
+    end = policy.get("expiry_date", "9999-12-31")
+    return start <= posting_date <= end
+
+
+def get_effective_policy_markup(policy: dict, posting_date: str) -> Decimal:
+    """Checks posting date against policy effective range before applying a rate (§10.2 attack #4)."""
+    if not check_policy_effective_date(policy, posting_date):
+        raise ValueError(
+            f"Posting date {posting_date} outside policy effective range "
+            f"({policy.get('effective_date')} to {policy.get('expiry_date')})"
+        )
+    return Decimal(str(policy["target_markup_percent"])) / Decimal("100")
+

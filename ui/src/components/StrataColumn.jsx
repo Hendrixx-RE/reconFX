@@ -66,7 +66,7 @@ function getEpochLabel(stratum, rank) {
  *  - strata: Array<{ label, amount_usd, count, disposition, status, ao_message_id, ... }>
  *  - onExpandStratum: (stratum) => void (callback for click-through)
  */
-export default function StrataColumn({ strata = [], onExpandStratum }) {
+export default function StrataColumn({ strata = [], onExpandStratum, onSelectStratum }) {
   const [selectedId, setSelectedId] = useState(null);
 
   // Total balance computation
@@ -94,6 +94,9 @@ export default function StrataColumn({ strata = [], onExpandStratum }) {
     setSelectedId((prev) => (prev === id ? null : id));
     if (onExpandStratum) {
       onExpandStratum(stratum);
+    }
+    if (onSelectStratum) {
+      onSelectStratum(stratum);
     }
   };
 

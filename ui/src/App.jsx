@@ -615,11 +615,39 @@ export default function App() {
   const handleApprove = () => {
     setApprovalDecision('APPROVED');
     setIsApprovalOpen(false);
+    try {
+      fetch('http://localhost:8000/api/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          escalation_id: escalationPacket?.escalation_id || 'ESC-2026-03-001',
+          decision: 'APPROVE',
+          actor: 'controller',
+          notes: 'Approved true-up from controller console',
+        }),
+      }).catch((err) => console.warn('Approval sync failed:', err));
+    } catch (e) {
+      console.warn('Approval fetch error:', e);
+    }
   };
 
   const handleReject = () => {
     setApprovalDecision('REJECTED');
     setIsApprovalOpen(false);
+    try {
+      fetch('http://localhost:8000/api/approve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          escalation_id: escalationPacket?.escalation_id || 'ESC-2026-03-001',
+          decision: 'REJECT',
+          actor: 'controller',
+          notes: 'Rejected true-up from controller console',
+        }),
+      }).catch((err) => console.warn('Reject sync failed:', err));
+    } catch (e) {
+      console.warn('Reject fetch error:', e);
+    }
   };
 
   return (

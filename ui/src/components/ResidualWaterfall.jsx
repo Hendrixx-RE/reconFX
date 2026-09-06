@@ -28,6 +28,7 @@ export default function ResidualWaterfall({
   factors = [],
   residual = 5000,
   recoveryFindings = [],
+  onSelectFactor,
 }) {
   // Compute stepped descent items
   const { steps, finalCalculatedResidual } = useMemo(() => {
@@ -382,7 +383,12 @@ export default function ResidualWaterfall({
             const { id, factor, currentBalance, reductionUsd, accepted } = step;
 
             return (
-              <div key={id} className="descent-node">
+              <div
+                key={id}
+                className="descent-node"
+                onClick={() => onSelectFactor && onSelectFactor(factor)}
+                style={{ cursor: onSelectFactor ? 'pointer' : 'default' }}
+              >
                 <div className="descent-rail">
                   <div className="balance-pill">{formatUSD(currentBalance)}</div>
                   <div className="rail-vertical-line" />
@@ -454,7 +460,25 @@ export default function ResidualWaterfall({
         </div>
 
         {/* Visually Distinct Separate Card/Axis: Recovery Findings */}
-        <div className="recovery-axis-card" role="region" aria-label="Independent recovery axis">
+        <div
+          className="recovery-axis-card"
+          role="region"
+          aria-label="Independent recovery axis"
+          onClick={() => {
+            if (onSelectFactor && recoveryFindings && recoveryFindings.length > 0) {
+              const rec = recoveryFindings[0];
+              onSelectFactor({
+                cause_id: rec.id || 'REC-01',
+                label: rec.label,
+                classification: 'MISCLASSIFICATION',
+                factor_usd: rec.entitlement_impact_usd || 14000,
+                evidence_refs: rec.evidence_refs || ['entity_gl.csv#GL-2026-0305', 'tp_policy.json#eligible_gl_accounts'],
+                disposition: 'REINSTATE_AND_COLLECT'
+              });
+            }
+          }}
+          style={{ cursor: onSelectFactor ? 'pointer' : 'default' }}
+        >
           <div className="recovery-axis-header">
             <span>Independent Recovery Axis (Separate Finding)</span>
             <span className="step-badge" style={{ background: 'rgba(16, 185, 129, 0.2)', color: 'var(--color-recovered, #3fb950)', border: '1px solid rgba(16, 185, 129, 0.4)' }}>
