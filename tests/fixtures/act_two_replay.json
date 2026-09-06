@@ -1,0 +1,564 @@
+[
+  {
+    "step": 1,
+    "tool_name": "get_policy",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period": "2026-03"
+    },
+    "result": {
+      "policy": {
+        "policy_id": "TP-POL-2026-ENG",
+        "policy_name": "Global Engineering Cost-Plus Services Agreement",
+        "effective_date": "2026-01-01",
+        "expiry_date": "2026-12-31",
+        "method": "COST_PLUS_TNMM",
+        "target_markup_percent": 10.0,
+        "billing_cutoff_day_of_month": 25,
+        "eligible_cost_centers": [
+          "CC-100",
+          "CC-101",
+          "CC-102"
+        ],
+        "eligible_gl_accounts": [
+          "6100",
+          "6110",
+          "6120",
+          "6200"
+        ],
+        "excluded_gl_accounts": [
+          "6800",
+          "6900",
+          "7100",
+          "7700"
+        ],
+        "materiality_threshold_usd": 500.0,
+        "document_precedence": [
+          "APPROVED_POLICY_EXCEPTION_MEMO",
+          "INTERCOMPANY_CONTRACT",
+          "TP_POLICY_GL_MAPPING",
+          "GL_LINE_DESCRIPTION"
+        ]
+      },
+      "contract": {
+        "contract_id": "ICC-US-IN-001",
+        "provider_entity": "ENT-IN-02",
+        "provider_name": "Maximor India Engineering Pvt Ltd",
+        "recipient_entity": "ENT-US-01",
+        "recipient_name": "Maximor Inc USA",
+        "billing_currency": "USD",
+        "local_currency": "INR",
+        "fx_rate_agreed": 83.5,
+        "fx_rate_basis": "CONTRACTUAL_FIXED",
+        "payment_terms": "NET_30",
+        "clearing_account": "1900"
+      },
+      "evidence_refs": [
+        "data/tp_policy.json",
+        "data/intercompany_contract.json"
+      ]
+    },
+    "timestamp": 14749.968746,
+    "relative_gap": 0.0
+  },
+  {
+    "step": 2,
+    "tool_name": "query_gl",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period_start": "2026-03-01",
+      "period_end": "2026-03-31",
+      "gl_accounts": null,
+      "cost_centers": null,
+      "description_contains": null
+    },
+    "result": {
+      "items": [
+        {
+          "doc_id": "GL-2026-0301",
+          "posting_date": "2026-03-05",
+          "cost_center": "CC-100",
+          "gl_account": "6100",
+          "account_description": "Direct Engineering Payroll",
+          "amount_usd": "1700000.00",
+          "description": "March Engineering Base Payroll",
+          "source_system": "PAYROLL",
+          "vendor_invoice_ref": ""
+        },
+        {
+          "doc_id": "GL-2026-0302",
+          "posting_date": "2026-03-10",
+          "cost_center": "CC-101",
+          "gl_account": "6110",
+          "account_description": "Cloud Infrastructure",
+          "amount_usd": "420000.00",
+          "description": "AWS Production Hosting Charges",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "AWS-MAR-2026"
+        },
+        {
+          "doc_id": "GL-2026-0303",
+          "posting_date": "2026-03-14",
+          "cost_center": "CC-102",
+          "gl_account": "6120",
+          "account_description": "Professional & Contractor Fees",
+          "amount_usd": "160000.00",
+          "description": "Engineering Contractor Fees",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "CTR-2026-0311"
+        },
+        {
+          "doc_id": "GL-2026-0304",
+          "posting_date": "2026-03-18",
+          "cost_center": "CC-100",
+          "gl_account": "6200",
+          "account_description": "Engineering Tooling",
+          "amount_usd": "90000.00",
+          "description": "Test Hardware and Lab Equipment",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "TOOL-2026-04"
+        },
+        {
+          "doc_id": "GL-2026-0305",
+          "posting_date": "2026-03-22",
+          "cost_center": "CC-100",
+          "gl_account": "6800",
+          "account_description": "Local Admin Overhead",
+          "amount_usd": "140000.00",
+          "description": "DevOps SaaS Software Licenses - Engineering",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "SAAS-2026-Q1"
+        },
+        {
+          "doc_id": "GL-2026-0306",
+          "posting_date": "2026-03-24",
+          "cost_center": "CC-102",
+          "gl_account": "6120",
+          "account_description": "Professional & Contractor Fees",
+          "amount_usd": "80000.00",
+          "description": "Executive Severance Settlement",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "SEV-2026-02"
+        },
+        {
+          "doc_id": "GL-2026-0307",
+          "posting_date": "2026-03-28",
+          "cost_center": "CC-100",
+          "gl_account": "6100",
+          "account_description": "Direct Engineering Payroll",
+          "amount_usd": "310000.00",
+          "description": "Off-Cycle Late Engineering Payroll",
+          "source_system": "PAYROLL",
+          "vendor_invoice_ref": ""
+        },
+        {
+          "doc_id": "GL-2026-0308",
+          "posting_date": "2026-03-31",
+          "cost_center": "CC-100",
+          "gl_account": "7100",
+          "account_description": "Local Facilities",
+          "amount_usd": "96000.00",
+          "description": "Bengaluru Office Facilities and Utilities",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "FAC-2026-03"
+        },
+        {
+          "doc_id": "GL-2026-0309",
+          "posting_date": "2026-03-31",
+          "cost_center": "CC-100",
+          "gl_account": "7700",
+          "account_description": "FX Revaluation",
+          "amount_usd": "340.00",
+          "description": "FX Revaluation - Intercompany Balances",
+          "source_system": "GL_ADJ",
+          "vendor_invoice_ref": ""
+        }
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0301",
+        "data/entity_gl.csv#GL-2026-0302",
+        "data/entity_gl.csv#GL-2026-0303",
+        "data/entity_gl.csv#GL-2026-0304",
+        "data/entity_gl.csv#GL-2026-0305",
+        "data/entity_gl.csv#GL-2026-0306",
+        "data/entity_gl.csv#GL-2026-0307",
+        "data/entity_gl.csv#GL-2026-0308",
+        "data/entity_gl.csv#GL-2026-0309"
+      ]
+    },
+    "timestamp": 14749.97008,
+    "relative_gap": 0.001335
+  },
+  {
+    "step": 3,
+    "tool_name": "query_payroll",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period": "2026-03"
+    },
+    "result": {
+      "items": [
+        {
+          "payroll_id": "PAY-2026-M1",
+          "employee_group": "ENG-FULLTIME",
+          "cost_center": "CC-100",
+          "service_period_start": "2026-03-01",
+          "service_period_end": "2026-03-25",
+          "posting_date": "2026-03-05",
+          "gross_pay_usd": "1700000.00",
+          "pay_type": "REGULAR"
+        },
+        {
+          "payroll_id": "PAY-2026-M2",
+          "employee_group": "ENG-CONTRACT",
+          "cost_center": "CC-100",
+          "service_period_start": "2026-03-01",
+          "service_period_end": "2026-03-25",
+          "posting_date": "2026-03-28",
+          "gross_pay_usd": "310000.00",
+          "pay_type": "OFF_CYCLE_LATE"
+        }
+      ],
+      "evidence_refs": [
+        "data/payroll_register.csv#PAY-2026-M1",
+        "data/payroll_register.csv#PAY-2026-M2"
+      ]
+    },
+    "timestamp": 14749.971792,
+    "relative_gap": 0.001712
+  },
+  {
+    "step": 4,
+    "tool_name": "query_gl",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period_start": "2026-03-01",
+      "period_end": "2026-03-31",
+      "gl_accounts": null,
+      "cost_centers": null,
+      "description_contains": "Off-Cycle"
+    },
+    "result": {
+      "items": [
+        {
+          "doc_id": "GL-2026-0307",
+          "posting_date": "2026-03-28",
+          "cost_center": "CC-100",
+          "gl_account": "6100",
+          "account_description": "Direct Engineering Payroll",
+          "amount_usd": "310000.00",
+          "description": "Off-Cycle Late Engineering Payroll",
+          "source_system": "PAYROLL",
+          "vendor_invoice_ref": ""
+        }
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0307"
+      ]
+    },
+    "timestamp": 14749.973111,
+    "relative_gap": 0.00132
+  },
+  {
+    "step": 5,
+    "tool_name": "test_hypothesis",
+    "kwargs": {
+      "cause_id": "F1",
+      "classification": "TIMING_UNBILLED",
+      "transaction_ids": [
+        "GL-2026-0307"
+      ],
+      "evidence_refs": [
+        "data/payroll_register.csv#PAY-2026-M1",
+        "data/payroll_register.csv#PAY-2026-M2",
+        "data/entity_gl.csv#GL-2026-0307"
+      ]
+    },
+    "result": {
+      "accepted": true,
+      "factor_usd": "31000.000",
+      "new_residual": "13000.000",
+      "rejection_reason": null,
+      "conflicting_ids": []
+    },
+    "timestamp": 14749.974378,
+    "relative_gap": 0.001266
+  },
+  {
+    "step": 6,
+    "tool_name": "query_approvals",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period": "2026-03",
+      "gl_account": "6120"
+    },
+    "result": {
+      "items": [
+        {
+          "exception_id": "EXP-2026-08",
+          "entity_id": "ENT-IN-02",
+          "applies_to_gl_accounts": [
+            "6120",
+            "6900"
+          ],
+          "approved_amount_usd": 80000.0,
+          "effective_period": "2026-03",
+          "approval_type": "PERMANENT_EXCLUSION",
+          "approver": "VP Corporate Tax",
+          "approval_date": "2026-03-19",
+          "reason_code": "RESTRUCTURING_SEVERANCE",
+          "narrative": "Executive severance settlement arising from the March 2026 leadership restructuring is excluded from the cost-plus service fee base for the duration of the 2026 agreement. This exclusion is permanent and is not to be recovered through any subsequent true-up.",
+          "documentation_link": "doc_store/EXP-2026-08_memo.pdf"
+        }
+      ],
+      "evidence_refs": [
+        "data/policy_exceptions.json#EXP-2026-08",
+        "doc_store/EXP-2026-08_memo.pdf"
+      ]
+    },
+    "timestamp": 14749.975561,
+    "relative_gap": 0.001183
+  },
+  {
+    "step": 7,
+    "tool_name": "query_gl",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period_start": "2026-03-01",
+      "period_end": "2026-03-31",
+      "gl_accounts": null,
+      "cost_centers": null,
+      "description_contains": "Severance"
+    },
+    "result": {
+      "items": [
+        {
+          "doc_id": "GL-2026-0306",
+          "posting_date": "2026-03-24",
+          "cost_center": "CC-102",
+          "gl_account": "6120",
+          "account_description": "Professional & Contractor Fees",
+          "amount_usd": "80000.00",
+          "description": "Executive Severance Settlement",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "SEV-2026-02"
+        }
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0306"
+      ]
+    },
+    "timestamp": 14749.977042,
+    "relative_gap": 0.001481
+  },
+  {
+    "step": 8,
+    "tool_name": "test_hypothesis",
+    "kwargs": {
+      "cause_id": "F2",
+      "classification": "APPROVED_EXCLUSION",
+      "transaction_ids": [
+        "GL-2026-0306"
+      ],
+      "evidence_refs": [
+        "data/policy_exceptions.json#EXP-2026-08",
+        "doc_store/EXP-2026-08_memo.pdf",
+        "data/entity_gl.csv#GL-2026-0306"
+      ]
+    },
+    "result": {
+      "accepted": true,
+      "factor_usd": "8000.000",
+      "new_residual": "5000.000",
+      "rejection_reason": null,
+      "conflicting_ids": []
+    },
+    "timestamp": 14749.978771,
+    "relative_gap": 0.001729
+  },
+  {
+    "step": 9,
+    "tool_name": "query_gl",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period_start": "2026-03-01",
+      "period_end": "2026-03-31",
+      "gl_accounts": [
+        "7700"
+      ],
+      "cost_centers": null,
+      "description_contains": null
+    },
+    "result": {
+      "items": [
+        {
+          "doc_id": "GL-2026-0309",
+          "posting_date": "2026-03-31",
+          "cost_center": "CC-100",
+          "gl_account": "7700",
+          "account_description": "FX Revaluation",
+          "amount_usd": "340.00",
+          "description": "FX Revaluation - Intercompany Balances",
+          "source_system": "GL_ADJ",
+          "vendor_invoice_ref": ""
+        }
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0309"
+      ]
+    },
+    "timestamp": 14749.981351,
+    "relative_gap": 0.002579
+  },
+  {
+    "step": 10,
+    "tool_name": "test_hypothesis",
+    "kwargs": {
+      "cause_id": "H3",
+      "classification": "FX_REVALUATION",
+      "transaction_ids": [
+        "GL-2026-0309"
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0309"
+      ]
+    },
+    "result": {
+      "accepted": false,
+      "factor_usd": "340.000",
+      "new_residual": "5000.000",
+      "rejection_reason": "BELOW_MATERIALITY",
+      "conflicting_ids": []
+    },
+    "timestamp": 14749.983643,
+    "relative_gap": 0.002292
+  },
+  {
+    "step": 11,
+    "tool_name": "query_gl",
+    "kwargs": {
+      "entity_id": "ENT-IN-02",
+      "period_start": "2026-03-01",
+      "period_end": "2026-03-31",
+      "gl_accounts": [
+        "6800"
+      ],
+      "cost_centers": null,
+      "description_contains": "SaaS"
+    },
+    "result": {
+      "items": [
+        {
+          "doc_id": "GL-2026-0305",
+          "posting_date": "2026-03-22",
+          "cost_center": "CC-100",
+          "gl_account": "6800",
+          "account_description": "Local Admin Overhead",
+          "amount_usd": "140000.00",
+          "description": "DevOps SaaS Software Licenses - Engineering",
+          "source_system": "AP_INVOICE",
+          "vendor_invoice_ref": "SAAS-2026-Q1"
+        }
+      ],
+      "evidence_refs": [
+        "data/entity_gl.csv#GL-2026-0305"
+      ]
+    },
+    "timestamp": 14749.988298,
+    "relative_gap": 0.004656
+  },
+  {
+    "step": 12,
+    "tool_name": "draft_journal_entry",
+    "kwargs": {
+      "entry_type": "GL_RECLASS",
+      "lines": [
+        {
+          "account": "6100",
+          "description": "Reclass rechargeable engineering software",
+          "debit": 140000.0
+        },
+        {
+          "account": "6800",
+          "description": "Reclass rechargeable engineering software",
+          "credit": 140000.0
+        }
+      ],
+      "supporting_evidence": [
+        "data/entity_gl.csv#GL-2026-0305"
+      ],
+      "requires_approval": true
+    },
+    "result": {
+      "entry_type": "GL_RECLASS",
+      "status": "DRAFT",
+      "lines": [
+        {
+          "account": "6100",
+          "description": "Reclass rechargeable engineering software",
+          "debit": 140000.0
+        },
+        {
+          "account": "6800",
+          "description": "Reclass rechargeable engineering software",
+          "credit": 140000.0
+        }
+      ],
+      "supporting_evidence": [
+        "data/entity_gl.csv#GL-2026-0305"
+      ],
+      "requires_approval": true
+    },
+    "timestamp": 14749.990731,
+    "relative_gap": 0.002433
+  },
+  {
+    "step": 13,
+    "tool_name": "draft_journal_entry",
+    "kwargs": {
+      "entry_type": "TP_TRUE_UP",
+      "lines": [
+        {
+          "entity": "ENT-IN-02",
+          "account": "1200",
+          "description": "Intercompany Receivable - US Parent",
+          "debit": 5000.0
+        },
+        {
+          "entity": "ENT-IN-02",
+          "account": "4100",
+          "description": "Intercompany Service Revenue",
+          "credit": 5000.0
+        }
+      ],
+      "supporting_evidence": [
+        "data/intercompany_invoices.csv#INV-IC-2026-03"
+      ],
+      "requires_approval": true
+    },
+    "result": {
+      "entry_type": "TP_TRUE_UP",
+      "status": "DRAFT",
+      "lines": [
+        {
+          "entity": "ENT-IN-02",
+          "account": "1200",
+          "description": "Intercompany Receivable - US Parent",
+          "debit": 5000.0
+        },
+        {
+          "entity": "ENT-IN-02",
+          "account": "4100",
+          "description": "Intercompany Service Revenue",
+          "credit": 5000.0
+        }
+      ],
+      "supporting_evidence": [
+        "data/intercompany_invoices.csv#INV-IC-2026-03"
+      ],
+      "requires_approval": true
+    },
+    "timestamp": 14749.993144,
+    "relative_gap": 0.002413
+  }
+]

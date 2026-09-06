@@ -119,116 +119,126 @@ def create_collection(
         If DODO_API_KEY is missing or the API call fails, returns a stub payment link.
         Never raises exceptions and never blocks the caller.
     """
-    api_key, env, base_url = _get_config()
+    try:
+        api_key, env, base_url = _get_config()
 
-    if not api_key:
+        if not api_key:
+            return _make_stub_collection(
+                customer_ref=customer_ref,
+                amount_usd=amount_usd,
+                description=description,
+                reason="DODO_API_KEY not configured",
+            )
+
+        amount_cents = int(round(amount_usd * 100))
+        clean_cust_id = customer_ref.strip().replace(" ", "_")
+        product_id = os.environ.get("DODO_PRODUCT_ID", f"prod_{clean_cust_id.lower()}")
+
+        # Attempt 1: Checkout Sessions API (modern Dodo Payments endpoint)
+        checkout_payload = {
+            "customer": {
+                "name": customer_ref,
+                "email": f"{clean_cust_id.lower()}@example.com",
+            },
+            "product_cart": [
+                {
+                    "product_id": product_id,
+                    "quantity": 1,
+                    "amount": amount_cents,
+                }
+            ],
+            "metadata": {
+                "customer_ref": customer_ref,
+                "description": description,
+                "amount_usd": str(amount_usd),
+                "source": "reconFX",
+            },
+        }
+
+        try:
+            url = f"{base_url}/checkouts"
+            data = _http_post_json(url, checkout_payload, api_key)
+            link = data.get("checkout_url") or data.get("payment_link")
+            pid = data.get("session_id") or data.get("payment_id") or f"sess_{clean_cust_id.lower()}_{int(amount_usd)}"
+            if link:
+                logger.info("Successfully created Dodo Payments checkout session %s: %s", pid, link)
+                return {
+                    "payment_id": pid,
+                    "payment_link": link,
+                    "checkout_url": link,
+                    "customer_ref": customer_ref,
+                    "amount_usd": float(amount_usd),
+                    "currency": "USD",
+                    "description": description,
+                    "status": "created",
+                    "stub": False,
+                    "dodo_reference": pid,
+                    "raw_response": data,
+                }
+        except Exception as exc:
+            logger.debug("Dodo /checkouts endpoint attempt failed: %s", exc)
+
+        # Attempt 2: One-time Payments API
+        payments_payload = {
+            "billing": {"country": "US"},
+            "customer": {
+                "name": customer_ref,
+                "email": f"{clean_cust_id.lower()}@example.com",
+            },
+            "payment_link": True,
+            "product_cart": [
+                {
+                    "product_id": product_id,
+                    "quantity": 1,
+                    "amount": amount_cents,
+                }
+            ],
+            "metadata": {
+                "customer_ref": customer_ref,
+                "description": description,
+                "amount_usd": str(amount_usd),
+                "source": "reconFX",
+            },
+        }
+
+        try:
+            url = f"{base_url}/payments"
+            data = _http_post_json(url, payments_payload, api_key)
+            link = data.get("payment_link") or data.get("checkout_url")
+            pid = data.get("payment_id") or data.get("session_id") or f"pay_{clean_cust_id.lower()}_{int(amount_usd)}"
+            if link:
+                logger.info("Successfully created Dodo Payments payment %s: %s", pid, link)
+                return {
+                    "payment_id": pid,
+                    "payment_link": link,
+                    "checkout_url": link,
+                    "customer_ref": customer_ref,
+                    "amount_usd": float(amount_usd),
+                    "currency": "USD",
+                    "description": description,
+                    "status": "created",
+                    "stub": False,
+                    "dodo_reference": pid,
+                    "raw_response": data,
+                }
+        except Exception as exc:
+            logger.warning("Dodo Payments API request failed (%s). Falling back to stub payment link.", exc)
+
         return _make_stub_collection(
             customer_ref=customer_ref,
             amount_usd=amount_usd,
             description=description,
-            reason="DODO_API_KEY not configured",
+            reason="Dodo Payments API request failed or returned no link",
+        )
+    except Exception as exc:
+        logger.warning("Unexpected error in Dodo create_collection: %s", exc)
+        return _make_stub_collection(
+            customer_ref=customer_ref,
+            amount_usd=amount_usd,
+            description=description,
+            reason=f"Unexpected error: {exc}",
         )
 
-    amount_cents = int(round(amount_usd * 100))
-    clean_cust_id = customer_ref.strip().replace(" ", "_")
-    product_id = os.environ.get("DODO_PRODUCT_ID", f"prod_{clean_cust_id.lower()}")
-
-    # Attempt 1: Checkout Sessions API (modern Dodo Payments endpoint)
-    checkout_payload = {
-        "customer": {
-            "name": customer_ref,
-            "email": f"{clean_cust_id.lower()}@example.com",
-        },
-        "product_cart": [
-            {
-                "product_id": product_id,
-                "quantity": 1,
-                "amount": amount_cents,
-            }
-        ],
-        "metadata": {
-            "customer_ref": customer_ref,
-            "description": description,
-            "amount_usd": str(amount_usd),
-            "source": "reconFX",
-        },
-    }
-
-    try:
-        url = f"{base_url}/checkouts"
-        data = _http_post_json(url, checkout_payload, api_key)
-        link = data.get("checkout_url") or data.get("payment_link")
-        pid = data.get("session_id") or data.get("payment_id") or f"sess_{clean_cust_id.lower()}_{int(amount_usd)}"
-        if link:
-            logger.info("Successfully created Dodo Payments checkout session %s: %s", pid, link)
-            return {
-                "payment_id": pid,
-                "payment_link": link,
-                "checkout_url": link,
-                "customer_ref": customer_ref,
-                "amount_usd": float(amount_usd),
-                "currency": "USD",
-                "description": description,
-                "status": "created",
-                "stub": False,
-                "dodo_reference": pid,
-                "raw_response": data,
-            }
-    except Exception as exc:
-        logger.debug("Dodo /checkouts endpoint attempt failed: %s", exc)
-
-    # Attempt 2: One-time Payments API
-    payments_payload = {
-        "billing": {"country": "US"},
-        "customer": {
-            "name": customer_ref,
-            "email": f"{clean_cust_id.lower()}@example.com",
-        },
-        "payment_link": True,
-        "product_cart": [
-            {
-                "product_id": product_id,
-                "quantity": 1,
-                "amount": amount_cents,
-            }
-        ],
-        "metadata": {
-            "customer_ref": customer_ref,
-            "description": description,
-            "amount_usd": str(amount_usd),
-            "source": "reconFX",
-        },
-    }
-
-    try:
-        url = f"{base_url}/payments"
-        data = _http_post_json(url, payments_payload, api_key)
-        link = data.get("payment_link") or data.get("checkout_url")
-        pid = data.get("payment_id") or data.get("session_id") or f"pay_{clean_cust_id.lower()}_{int(amount_usd)}"
-        if link:
-            logger.info("Successfully created Dodo Payments payment %s: %s", pid, link)
-            return {
-                "payment_id": pid,
-                "payment_link": link,
-                "checkout_url": link,
-                "customer_ref": customer_ref,
-                "amount_usd": float(amount_usd),
-                "currency": "USD",
-                "description": description,
-                "status": "created",
-                "stub": False,
-                "dodo_reference": pid,
-                "raw_response": data,
-            }
-    except Exception as exc:
-        logger.warning("Dodo Payments API request failed (%s). Falling back to stub payment link.", exc)
-
-    return _make_stub_collection(
-        customer_ref=customer_ref,
-        amount_usd=amount_usd,
-        description=description,
-        reason="Dodo Payments API request failed or returned no link",
-    )
 
 
 # Alias for README.md §6.3 compatibility
