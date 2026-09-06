@@ -1,0 +1,851 @@
+<!doctype html>
+<title>reconFX Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper:#f5f6ee; --paper-2:#eef1e2;
+    --surface:#ffffff; --surface-2:#f2f4ec; --surface-3:#e8ebe0; --surface-dark:#1c2318;
+    --ink:#1c2b20; --ink-soft:#525f4f; --ink-faint:#8b9481;
+    --line:#e1e4d3; --line-soft:#edefe4;
+    --headline:#20382b;
+    --lime:#dfec55; --lime-ink:#28330f; --lime-deep:#c9d93e;
+    --accent:#2c4a3a;
+    --ok-bg:#deefdf; --ok-ink:#2e7a4c;
+    --warn-bg:#fbe6d3; --warn-ink:#a8560f;
+    --info-bg:#dcebf0; --info-ink:#2c6f86;
+    --hot-bg:#f7dcd6; --hot-ink:#a13a2a;
+    --muted-bg:#ecefe4; --muted-ink:#7d8676;
+    --shadow:0 1px 2px rgba(28,43,32,.04), 0 12px 28px -14px rgba(28,43,32,.2);
+    --shadow-lg:0 4px 12px rgba(28,43,32,.07), 0 32px 64px -24px rgba(28,43,32,.32);
+    --serif:"Source Serif 4",Georgia,serif;
+    --sans:"IBM Plex Sans",-apple-system,"Segoe UI",sans-serif;
+    --mono:"IBM Plex Mono","SF Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;}
+  button{font-family:var(--sans); cursor:pointer;}
+  a{color:inherit;}
+  [hidden]{display:none !important;}
+  ::selection{background:var(--lime); color:var(--lime-ink);}
+  .wrap{max-width:1120px; margin:0 auto; padding:0 clamp(18px,4vw,40px);}
+  .money{font-family:var(--serif); font-variant-numeric:tabular-nums lining-nums; font-weight:600;}
+
+  /* ---------- boot ---------- */
+  #boot{position:fixed; inset:0; z-index:60; background:var(--headline); color:#f5f6ee; display:flex; align-items:center; justify-content:center; transition:opacity .45s ease, visibility .45s ease;}
+  #boot.gone{opacity:0; visibility:hidden; pointer-events:none;}
+  .boot-inner{text-align:center; padding:0 22px;}
+  .boot-inner svg{width:38px; height:38px; margin-bottom:18px;}
+  .boot-bar{width:210px; height:3px; background:rgba(245,246,238,.16); border-radius:3px; margin:0 auto 14px; overflow:hidden;}
+  .boot-fill{height:100%; width:0; background:var(--lime); transition:width .3s ease;}
+  #boot-status{font-family:var(--mono); font-size:12.5px; color:#c3ccb6; margin:0; min-height:18px;}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--surface); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:20;}
+  .topbar .wrap{display:flex; align-items:center; gap:18px; padding:12px clamp(18px,4vw,40px); flex-wrap:wrap;}
+  .brand{display:flex; align-items:center; gap:9px; font-family:var(--serif); font-weight:700; font-size:17.5px; color:var(--headline);}
+  .brand svg{width:23px; height:23px;}
+  .period{font-size:13px; color:var(--ink-soft); padding-left:18px; border-left:1px solid var(--line);}
+  .period b{color:var(--ink); font-weight:600;}
+  .topright{margin-left:auto; display:flex; align-items:center; gap:12px;}
+  .conn{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-faint);}
+  .conn .dot{width:7px; height:7px; border-radius:50%; background:var(--ok-ink);}
+  .conn .dot.live{animation:pulse 2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .who{display:flex; align-items:center; gap:8px; font-size:13px;}
+  .who .av{width:28px; height:28px; border-radius:50%; background:var(--accent); color:#f5f6ee; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700;}
+  .who span{font-weight:600;}
+  .who small{display:block; color:var(--ink-faint); font-size:11.5px; font-weight:400;}
+
+  .tabs{background:var(--surface); border-bottom:1px solid var(--line); position:sticky; top:53px; z-index:19;}
+  .tabs .wrap{display:flex; gap:4px; padding:0 clamp(18px,4vw,40px); overflow-x:auto;}
+  .tab{background:none; border:none; padding:12px 14px; font-size:13.5px; font-weight:600; color:var(--ink-faint); border-bottom:2px solid transparent; white-space:nowrap; display:flex; align-items:center; gap:8px;}
+  .tab.active{color:var(--headline); border-bottom-color:var(--accent);}
+  .tab .count{background:var(--hot-bg); color:var(--hot-ink); font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px;}
+  .tab .count.done{background:var(--ok-bg); color:var(--ok-ink);}
+
+  main{padding:clamp(24px,4vw,38px) 0 90px;}
+  .pagehead{margin-bottom:24px;}
+  .pagehead h1{font-family:var(--serif); font-weight:600; font-size:clamp(23px,3.2vw,30px); margin:0 0 6px; color:var(--headline);}
+  .pagehead p{margin:0; color:var(--ink-soft); font-size:14.5px; max-width:62ch;}
+
+  /* ---------- progress strip ---------- */
+  .progress{background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:18px 22px; margin-bottom:22px; display:flex; align-items:center; gap:24px; flex-wrap:wrap;}
+  .progress .stat{min-width:120px;}
+  .progress .stat .k{font-size:12px; color:var(--ink-faint);}
+  .progress .stat .v{font-family:var(--serif); font-weight:600; font-size:24px; color:var(--headline); font-variant-numeric:tabular-nums;}
+  .progress .stat .v.hot{color:var(--hot-ink);}
+  .progress .stat .v.ok{color:var(--ok-ink);}
+  .bar{flex:1; min-width:180px;}
+  .bar .track{height:8px; background:var(--surface-3); border-radius:99px; overflow:hidden;}
+  .bar .fill{height:100%; background:var(--ok-ink); border-radius:99px; width:0; transition:width .5s ease;}
+  .bar .lbl{font-size:12.5px; color:var(--ink-soft); margin-top:7px;}
+
+  /* ---------- queue cards ---------- */
+  .qgrid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:820px){ .qgrid{grid-template-columns:1fr;} }
+  .qcard{background:var(--surface); border-radius:16px; box-shadow:var(--shadow); padding:22px; text-align:left; border:none; width:100%; display:block; transition:box-shadow .18s ease;}
+  .qcard:hover{box-shadow:var(--shadow-lg);}
+  .qcard .row1{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:6px;}
+  .qcard h3{font-family:var(--serif); font-size:18px; margin:0; color:var(--headline); font-weight:600;}
+  .qcard .amt{font-family:var(--serif); font-size:22px; font-weight:600; color:var(--headline);}
+  .qcard p{font-size:13.5px; color:var(--ink-soft); margin:0 0 16px;}
+  .qcard .foot{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:14px; border-top:1px solid var(--line-soft);}
+  .qcard .go{font-size:13px; font-weight:600; color:var(--accent);}
+
+  .chip{font-size:11.5px; font-weight:700; padding:4px 10px; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; gap:5px;}
+  .chip.hot{background:var(--hot-bg); color:var(--hot-ink);}
+  .chip.ok{background:var(--ok-bg); color:var(--ok-ink);}
+  .chip.warn{background:var(--warn-bg); color:var(--warn-ink);}
+  .chip.info{background:var(--info-bg); color:var(--info-ink);}
+  .chip.muted{background:var(--muted-bg); color:var(--muted-ink);}
+
+  /* ---------- analysis panel ---------- */
+  .runbox{background:var(--surface); border-radius:16px; box-shadow:var(--shadow); padding:26px; text-align:center; margin-bottom:20px;}
+  .runbox h3{font-family:var(--serif); font-size:19px; margin:0 0 6px; color:var(--headline);}
+  .runbox p{font-size:13.5px; color:var(--ink-soft); margin:0 0 18px;}
+  .spinner{width:22px; height:22px; border:2.5px solid var(--surface-3); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .runstep{font-size:13.5px; color:var(--ink-soft); font-family:var(--mono); font-size:12.5px;}
+
+  .btn{display:inline-flex; align-items:center; gap:7px; font-weight:600; font-size:13.5px; border-radius:999px; padding:10px 18px; border:none; background:var(--lime); color:var(--lime-ink); white-space:nowrap;}
+  .btn:hover{background:var(--lime-deep);}
+  .btn.ghost{background:transparent; border:1.5px solid var(--line); color:var(--headline);}
+  .btn.ghost:hover{border-color:var(--accent); background:var(--surface-2);}
+  .btn.dark{background:var(--headline); color:#f5f6ee;}
+  .btn.dark:hover{background:var(--accent);}
+  .btn.sm{padding:7px 14px; font-size:12.5px;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* ---------- finding rows ---------- */
+  .finding{background:var(--surface); border-radius:14px; box-shadow:var(--shadow); padding:18px 20px; margin-bottom:10px; opacity:0; animation:rise .4s ease forwards;}
+  @keyframes rise{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+  .finding.done{background:var(--surface-2); box-shadow:none;}
+  .finding .head{display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;}
+  .finding .title{flex:1; min-width:200px;}
+  .finding .title h4{font-size:15px; font-weight:600; margin:0 0 3px; color:var(--ink);}
+  .finding .title p{font-size:13.5px; color:var(--ink-soft); margin:0;}
+  .finding .figure{text-align:right;}
+  .finding .figure .m{font-family:var(--serif); font-size:19px; font-weight:600; color:var(--headline);}
+  .finding .figure .sub{font-size:12px; color:var(--ink-faint);}
+  .finding.rejected .figure .m{color:var(--muted-ink); text-decoration:line-through;}
+  .finding .actions{display:flex; gap:8px; align-items:center; margin-top:14px; padding-top:14px; border-top:1px solid var(--line-soft); flex-wrap:wrap;}
+  .finding .actions .spacer{flex:1;}
+  .finding .resolved{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--ok-ink); font-weight:600;}
+  .finding .resolved .tick{width:18px; height:18px; border-radius:50%; background:var(--ok-ink); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px;}
+  .undo{background:none; border:none; font-size:12.5px; color:var(--ink-faint); text-decoration:underline; padding:0;}
+
+  .sectionlabel{font-size:12.5px; font-weight:700; color:var(--ink-faint); margin:26px 0 10px; padding-top:16px; border-top:1px dashed var(--line);}
+
+  /* ---------- sign-off ---------- */
+  .signoff{background:var(--surface); border-radius:16px; box-shadow:var(--shadow); padding:24px; margin-top:6px; border-left:4px solid var(--hot-ink);}
+  .signoff h3{font-family:var(--serif); font-size:19px; margin:0 0 4px; color:var(--headline);}
+  .signoff .lede{font-size:13.5px; color:var(--ink-soft); margin:0 0 18px;}
+  .kvgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
+  .kvbox{background:var(--surface-2); border-radius:10px; padding:12px 14px;}
+  .kvbox .k{font-size:11.5px; color:var(--ink-faint);}
+  .kvbox .v{font-family:var(--serif); font-weight:600; font-size:16px; color:var(--headline);}
+  details.tech{margin:16px 0;}
+  details.tech summary{font-size:12.5px; color:var(--ink-faint); cursor:pointer; font-weight:600;}
+  details.tech .body{margin-top:12px;}
+  .jewrap{overflow-x:auto;}
+  table.je{width:100%; border-collapse:collapse; font-size:13px; min-width:460px;}
+  table.je th{text-align:left; font-size:11.5px; font-weight:600; color:var(--ink-faint); border-bottom:1px solid var(--line); padding:6px 10px 6px 0;}
+  table.je td{padding:7px 10px 7px 0; border-bottom:1px solid var(--line-soft); white-space:nowrap;}
+  table.je td.n{font-family:var(--mono); text-align:right;}
+  .field{margin-bottom:14px;}
+  .field label{display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;}
+  .field textarea{width:100%; font-family:var(--sans); font-size:13.5px; padding:10px 12px; border:1px solid var(--line); border-radius:10px; resize:vertical; min-height:70px; background:var(--surface); color:var(--ink);}
+  .field textarea:focus{outline:none; border-color:var(--accent);}
+
+  /* ---------- activity ---------- */
+  .act-item{display:flex; gap:14px; padding:14px 0; border-bottom:1px solid var(--line-soft);}
+  .act-item .dot{width:9px; height:9px; border-radius:50%; margin-top:6px; flex:none;}
+  .act-item .body{flex:1;}
+  .act-item .body b{font-weight:600;}
+  .act-item .body p{margin:2px 0 0; font-size:13px; color:var(--ink-soft);}
+  .act-item .time{font-size:12px; color:var(--ink-faint); white-space:nowrap;}
+  .empty{text-align:center; padding:54px 20px; color:var(--ink-faint);}
+  .empty h3{font-family:var(--serif); font-size:18px; color:var(--ink-soft); margin:0 0 6px;}
+  .empty p{font-size:13.5px; margin:0;}
+
+  /* ---------- evidence modal ---------- */
+  .overlay{position:fixed; inset:0; background:rgba(28,43,32,.45); display:flex; align-items:flex-start; justify-content:center; padding:clamp(16px,5vh,60px) 16px; overflow-y:auto; z-index:40;}
+  .modal{background:var(--surface); max-width:680px; width:100%; border-radius:18px; box-shadow:var(--shadow-lg); margin-bottom:40px;}
+  .modal-head{display:flex; align-items:flex-start; justify-content:space-between; gap:14px; padding:22px 24px; border-bottom:1px solid var(--line);}
+  .modal-head h2{font-family:var(--serif); font-size:19px; margin:0 0 6px; color:var(--headline);}
+  .x{background:var(--surface-2); border:none; border-radius:999px; width:32px; height:32px; font-size:14px; color:var(--ink-soft); flex:none;}
+  .modal-body{padding:20px 24px 26px;}
+  .modal-body h4{font-size:11.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); margin:22px 0 10px;}
+  .modal-body h4:first-child{margin-top:0;}
+  .txwrap{overflow-x:auto;}
+  table.tx{width:100%; border-collapse:collapse; font-size:12.5px; min-width:470px;}
+  table.tx th{text-align:left; font-weight:600; color:var(--ink-faint); border-bottom:1px solid var(--line); padding:5px 10px 5px 0;}
+  table.tx td{padding:7px 10px 7px 0; border-bottom:1px solid var(--line-soft);}
+  table.tx td.n{font-family:var(--mono); text-align:right;}
+  .chain{border-left:2px solid var(--line); margin-left:5px;}
+  .chain .link{position:relative; padding:2px 0 15px 20px;}
+  .chain .link::before{content:""; position:absolute; left:-5px; top:6px; width:8px; height:8px; border-radius:50%; background:var(--accent);}
+  .chain .link .k{font-size:12px; font-weight:700; color:var(--accent);}
+  .chain .link p{margin:3px 0 0; font-size:13.5px; color:var(--ink-soft);}
+  .mathline{font-family:var(--serif); font-size:15.5px; background:var(--surface-2); padding:12px 15px; border-radius:10px; border-left:3px solid var(--accent);}
+  .twocol{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  @media (max-width:520px){ .twocol{grid-template-columns:1fr;} }
+  .twocol > div{background:var(--surface-2); border-radius:10px; padding:13px 15px;}
+  .twocol h5{font-size:12px; margin:0 0 6px; color:var(--ink-faint); font-weight:700;}
+  .twocol p{margin:0; font-size:12.5px; color:var(--ink-soft);}
+  .resolution{margin-top:9px; font-size:12.5px; color:var(--ok-ink); background:var(--ok-bg); padding:10px 13px; border-radius:10px;}
+  table.corr{width:100%; border-collapse:collapse; font-size:12px; min-width:330px;}
+  table.corr th{text-align:left; font-weight:600; color:var(--ink-faint); border-bottom:1px solid var(--line); padding:4px 8px 4px 0;}
+  table.corr td{padding:4px 8px 4px 0; border-bottom:1px solid var(--line-soft);}
+  table.corr td.y{color:var(--ok-ink); font-weight:600;}
+  table.corr td.n2{color:var(--ink-faint);}
+  .traceblock{background:var(--surface-dark); border-radius:10px; padding:12px 14px; font-family:var(--mono); font-size:11.5px; color:#aab19f; max-height:170px; overflow-y:auto;}
+  .traceblock div{padding:3px 0;}
+  .traceblock .c{color:#dfe4d5;}
+  .traceblock .r{color:#6fbf8a;}
+  .traceblock .w{color:#e2896a;}
+
+  /* ---------- toast ---------- */
+  .toasts{position:fixed; right:20px; bottom:20px; z-index:50; display:flex; flex-direction:column; gap:10px; max-width:340px;}
+  .toast{background:var(--headline); color:#f2f4ea; border-radius:12px; padding:13px 16px; box-shadow:var(--shadow-lg); display:flex; gap:12px; align-items:flex-start; animation:slidein .3s ease;}
+  @keyframes slidein{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+  .toast .msg{flex:1; font-size:13px;}
+  .toast .msg b{display:block; font-weight:600; margin-bottom:2px;}
+  .toast .msg small{color:#a9b39c; font-size:12px;}
+  .toast button{background:none; border:none; color:var(--lime); font-size:12.5px; font-weight:600; padding:0;}
+  @media (max-width:520px){ .toasts{left:16px; right:16px; max-width:none;} }
+
+  button:focus-visible, a:focus-visible, summary:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  @media (prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} }
+</style>
+
+<div id="boot">
+  <div class="boot-inner">
+    <svg viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="12" stroke="#f5f6ee" stroke-width="1.4"/><path d="M13 4a9 9 0 0 1 9 9" stroke="#dfec55" stroke-width="2.4" stroke-linecap="round"/><circle cx="13" cy="13" r="3.2" fill="#f5f6ee"/></svg>
+    <div class="boot-bar"><div class="boot-fill" id="boot-fill"></div></div>
+    <p id="boot-status">Signing in…</p>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <svg viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="12" stroke="#2c4a3a" stroke-width="1.4"/><path d="M13 4a9 9 0 0 1 9 9" stroke="#dfec55" stroke-width="2.4" stroke-linecap="round"/><circle cx="13" cy="13" r="3.2" fill="#2c4a3a"/></svg>
+      reconFX
+    </div>
+    <span class="period">India engineering entity · <b>March 2026 close</b></span>
+    <div class="topright">
+      <span class="conn" id="conn"><span class="dot"></span>Connecting…</span>
+      <div class="who"><div class="av">AR</div><div><span>Ananya Rao</span><small>Controller</small></div></div>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="wrap">
+    <button class="tab active" data-page="queue">My close queue <span class="count" id="cnt-queue">6</span></button>
+    <button class="tab" data-page="clearing">Clearing account <span class="count" id="cnt-clearing">6</span></button>
+    <button class="tab" data-page="variance">March variance <span class="count" id="cnt-variance">4</span></button>
+    <button class="tab" data-page="activity">Activity <span class="count done" id="cnt-activity">0</span></button>
+  </div>
+</nav>
+
+<main>
+  <!-- ============ QUEUE ============ -->
+  <section class="wrap" id="page-queue">
+    <div class="pagehead">
+      <h1>Good morning, Ananya</h1>
+      <p>Two things are holding up the March close. reconFX has already investigated both — everything below is waiting on a decision from you, not more analysis.</p>
+    </div>
+
+    <div class="progress">
+      <div class="stat"><div class="k">Under review</div><div class="v money" id="q-total">$1,891,000</div></div>
+      <div class="stat"><div class="k">Needs you</div><div class="v hot" id="q-need">10</div></div>
+      <div class="stat"><div class="k">Cleared by you</div><div class="v ok" id="q-done">0</div></div>
+      <div class="bar">
+        <div class="track"><div class="fill" id="q-fill"></div></div>
+        <div class="lbl" id="q-lbl">0 of 10 decisions made</div>
+      </div>
+    </div>
+
+    <div class="qgrid">
+      <button class="qcard" data-goto="clearing">
+        <div class="row1"><h3>Clearing account 1900</h3><span class="amt money">$1,847,000</span></div>
+        <p>Three years of unexplained balance, no owner. Broken into six causes — five have a recommended action, one can't be explained and needs escalating.</p>
+        <div class="foot"><span class="chip hot" id="qc-chip-1">6 decisions waiting</span><span class="go">Review →</span></div>
+      </button>
+      <button class="qcard" data-goto="variance">
+        <div class="row1"><h3>March margin variance</h3><span class="amt money">$44,000</span></div>
+        <p>Billed margin came in at 8.41% against the 10% agreement. Investigated down to a $5,000 genuine shortfall — the rest isn't a pricing problem at all.</p>
+        <div class="foot"><span class="chip hot" id="qc-chip-2">4 decisions waiting</span><span class="go">Review →</span></div>
+      </button>
+    </div>
+
+    <div class="sectionlabel">WHY THIS MATTERS THIS MONTH</div>
+    <div class="finding" style="animation:none; opacity:1;">
+      <div class="head">
+        <div class="title">
+          <h4>This month's variance nearly became the twelfth buried plug</h4>
+          <p>Eleven times in the last three years, a month-end variance couldn't be explained and was accrued into account 1900 instead. In seven of those eleven months, the cause was the same one found today: payroll posting after the billing cutoff. That pattern is why timing was checked first.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CLEARING ============ -->
+  <section class="wrap" id="page-clearing" hidden>
+    <div class="pagehead">
+      <h1>Clearing account 1900</h1>
+      <p>$1,847,000 sitting unexplained for 38 months. Each row below is one cause, with the evidence behind it and a recommended action.</p>
+    </div>
+
+    <div class="progress">
+      <div class="stat"><div class="k">Still unexplained</div><div class="v money" id="c-unexplained">$1,847,000</div></div>
+      <div class="stat"><div class="k">Cash recoverable</div><div class="v ok money">$263,000</div></div>
+      <div class="stat"><div class="k">Decisions left</div><div class="v hot" id="c-left">6</div></div>
+      <div class="bar"><div class="track"><div class="fill" id="c-fill"></div></div><div class="lbl" id="c-lbl">Not yet analysed</div></div>
+    </div>
+
+    <div id="c-runbox" class="runbox">
+      <h3>Ready to analyse 55 open items</h3>
+      <p>reconFX will group them by cause, then confirm each group against payroll, vendor feeds, the migration log and customer contracts before proposing anything.</p>
+      <button class="btn dark" id="run-clearing">Run the analysis</button>
+    </div>
+
+    <div id="c-findings"></div>
+
+    <div id="c-footer" hidden style="display:flex; justify-content:space-between; gap:12px; margin-top:18px; flex-wrap:wrap;">
+      <button class="btn ghost sm" id="c-rerun">Run again</button>
+      <button class="btn" id="c-next">Continue to March variance</button>
+    </div>
+  </section>
+
+  <!-- ============ VARIANCE ============ -->
+  <section class="wrap" id="page-variance" hidden>
+    <div class="pagehead">
+      <h1>March margin variance</h1>
+      <p>The agreement says the India entity bills cost plus 10%. It billed 8.41%. That's a $44,000 gap — but most of it isn't a pricing problem, and treating it as one would create a tax exposure rather than fix it.</p>
+    </div>
+
+    <div class="progress">
+      <div class="stat"><div class="k">Still unexplained</div><div class="v money hot" id="v-unexplained">$44,000</div></div>
+      <div class="stat"><div class="k">Not a pricing issue</div><div class="v ok money" id="v-explained">$0</div></div>
+      <div class="stat"><div class="k">Decisions left</div><div class="v hot" id="v-left">4</div></div>
+      <div class="bar"><div class="track"><div class="fill" id="v-fill"></div></div><div class="lbl" id="v-lbl">Not yet analysed</div></div>
+    </div>
+
+    <div id="v-runbox" class="runbox">
+      <h3>Ready to investigate the $44,000 gap</h3>
+      <p>Hypotheses are tested in the order the clearing-account history suggests — timing first, because that explained seven of the eleven buried months.</p>
+      <button class="btn dark" id="run-variance">Run the investigation</button>
+    </div>
+
+    <div id="v-findings"></div>
+    <div id="v-extra" hidden></div>
+  </section>
+
+  <!-- ============ ACTIVITY ============ -->
+  <section class="wrap" id="page-activity" hidden>
+    <div class="pagehead">
+      <h1>Activity</h1>
+      <p>Every decision you've made this session, in order. Each one is recorded against your name and can be reversed until the close is locked.</p>
+    </div>
+    <div id="act-list"></div>
+  </section>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head"><div><h2 id="m-title"></h2><span class="chip" id="m-chip"></span></div><button class="x" id="m-close" aria-label="Close">✕</button></div>
+    <div class="modal-body" id="m-body"></div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const fmt = n => '$' + Math.round(n).toLocaleString('en-US');
+const now = () => new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+/* ================= DATA ================= */
+const F = {
+  S1:{group:'clearing', title:'Left over from the 2023 ERP migration', amount:612000, items:9,
+    plain:'Nine balances carried over when the old system was switched off in April 2023 and never cleared afterwards.',
+    action:'Approve write-off', actionKind:'dark', doneLabel:'Write-off approved · routed to VP Tax for sign-off', tone:'ok',
+    tx:[{id:'CLR-2023-001',date:'2023-04-01',cc:'CC-100',gl:'1900',desc:'Migration — opening balance import',amt:'68,000'},
+        {id:'CLR-2023-004',date:'2023-04-03',cc:'CC-101',gl:'1900',desc:'Migration — AP subledger carryover',amt:'94,500'}],
+    note:'and 7 more, all dated 1–5 April 2023',
+    chain:[['What happened','The old accounting system was retired and NetSuite went live on 1 April 2023.'],
+           ['How it landed here','Carryover balances were parked in account 1900 during the switchover, tagged as migration entries.'],
+           ['Why it stayed','Once the new ledger settled, nobody owned the cleanup, so it rolled forward for three years.']],
+    math:'9 items, every one inside the 1–5 April 2023 migration window · total $612,000',
+    trace:[['query_clearing_account(1900)','55 items returned','r'],['match against migration_log.json','9 items inside window','r']]},
+
+  S2:{group:'clearing', title:'Currency revaluations that were never reversed', amount:384000, items:6,
+    plain:'Six month-end currency adjustments that should have been reversed the following month, and weren\'t.',
+    action:'Approve reversal', actionKind:'dark', doneLabel:'Reversing entry drafted · awaiting posting', tone:'ok',
+    tx:[{id:'CLR-2023-013',date:'2023-07-31',cc:'CC-100',gl:'1900',desc:'FX revaluation — intercompany loan, June',amt:'61,400'}],
+    note:'and 5 more, each a month-end revaluation',
+    chain:[['What happened','Month-end currency revaluation runs on the intercompany loan balance.'],
+           ['How it landed here','Each revaluation is supposed to reverse the following period. Six never did.'],
+           ['Why it stayed','With no reversal, the adjustments accumulated instead of netting to zero.']],
+    math:'6 items with no matching reversal in the following period · total $384,000',
+    trace:[['scan for FX revaluation entries','6 found','r'],['check next-period reversals','0 matched','w']]},
+
+  S3:{group:'clearing', title:'A supplier feed that imported twice', amount:206000, items:14,
+    plain:'A supplier invoice batch ran twice on the same day. Fourteen entries exist where seven were owed.',
+    action:'Approve reversal', actionKind:'dark', doneLabel:'Reversal of 7 duplicates drafted', tone:'ok',
+    tx:[{id:'CLR-2024-101',date:'2024-03-11',cc:'CC-101',gl:'1900',desc:'Supplier feed import — VND-2024-0311',amt:'29,400'},
+        {id:'CLR-2024-108',date:'2024-03-11',cc:'CC-101',gl:'1900',desc:'Supplier feed import — VND-2024-0311 (duplicate)',amt:'29,400'}],
+    note:'12 more rows — seven matched pairs in total',
+    chain:[['What happened','The supplier feed timed out on 11 March 2024 and was re-run.'],
+           ['How it landed here','The re-run had no duplicate check, so every invoice in the batch posted a second time.'],
+           ['Why it stayed','The duplicates carry different document IDs, so no standard report flagged them.']],
+    math:'7 pairs sharing invoice reference, amount and date · total $206,000',
+    trace:[['group by vendor_invoice_ref + amount + date','7 collisions','r']]},
+
+  S4:{group:'clearing', title:'Eleven months of variances nobody investigated', amount:290000, items:11,
+    plain:'Each month a margin variance couldn\'t be explained, it was accrued here instead. This is the pattern that predicted today\'s finding.',
+    action:'Send to investigation', actionKind:'ghost', doneLabel:'Pattern applied to this month\'s investigation', tone:'info',
+    tx:[{id:'CLR-2024-210',date:'2024-06-30',cc:'CC-100',gl:'1900',desc:'Margin variance accrual — unexplained',amt:'24,500'}],
+    note:'10 more, one per month from June 2024 to April 2025',
+    chain:[['What happened','Eleven month-end closes where the billed margin didn\'t match the agreement.'],
+           ['How it landed here','Each time, the difference was accrued into 1900 rather than investigated.'],
+           ['What it tells us','Seven of the eleven months had payroll posting after the billing cutoff — the same cause found in March 2026.']],
+    math:'11 monthly accruals, June 2024 – April 2025 · total $290,000',
+    corr:true,
+    trace:[['group by description + monthly cadence','11 items','r'],['correlate against payroll posting dates','7 of 11 match','r']]},
+
+  S5:{group:'clearing', title:'A customer who stopped being invoiced', amount:263000, items:3,
+    plain:'CUST-4471\'s contract runs to December 2026, but invoicing stopped in August 2024. This is real money still owed.',
+    action:'Approve collection', actionKind:'dark', doneLabel:'Payment request sent to CUST-4471', tone:'ok',
+    tx:[{id:'CLR-2024-301',date:'2024-08-15',cc:'CC-100',gl:'1900',desc:'CUST-4471 — invoicing gap, month 1',amt:'87,600'}],
+    note:'2 more months in the same gap',
+    chain:[['What happened','CUST-4471 signed through December 2026 at roughly $87,700 a month.'],
+           ['How it landed here','Invoicing stopped in August 2024 with no cancellation, no dispute, no record of why.'],
+           ['What it means','The contract is still live, so this is collectable cash — not a write-off.']],
+    math:'3 unbilled months against an active contract · total $263,000',
+    trace:[['load customer_contracts.json','CUST-4471 active to 2026-12','r'],['compare against invoice history','last invoice 2024-08','w']]},
+
+  S6:{group:'clearing', title:'Cannot be explained', amount:92000, items:12,
+    plain:'Twelve entries with no reference, no source tag, and no match anywhere. reconFX will not invent a cause for these.',
+    action:'Escalate with evidence request', actionKind:'dark', doneLabel:'Escalated · evidence request sent to Group Finance', tone:'warn',
+    tx:[{id:'CLR-2023-088',date:'2023-11-22',cc:'CC-102',gl:'1900',desc:'Adjustment — no reference given',amt:'6,100'}],
+    note:'11 more, none with a usable reference',
+    chain:[['What was tried','Checked against the migration log, supplier feeds, payroll records and customer contracts.'],
+           ['What came back','No corroborating record in any of them.'],
+           ['The position','Escalated as unexplained rather than assigned a plausible-sounding cause.']],
+    math:'12 items, no discoverable signature · total $92,000',
+    gap:['Original supporting documents for these posting dates','A source-system export covering November 2023 – May 2025'],
+    trace:[['exhaustive cross-reference, all sources','0 matches','w'],['escalate(UNEXPLAINED)','halted','w']]},
+
+  F1:{group:'variance', title:'Payroll landed three days after the billing cutoff', amount:31000, items:1, reduces:31000,
+    plain:'$310,000 of March engineering payroll posted on the 28th. The invoice had already gone out on the 25th, so the markup on it was never billed.',
+    action:'Roll into April billing', actionKind:'dark', doneLabel:'Scheduled for the April invoice', tone:'ok',
+    tx:[{id:'GL-2026-0307',date:'2026-03-28',cc:'CC-100',gl:'6100',desc:'Off-cycle engineering payroll',amt:'310,000.00'}],
+    chain:[['What happened','An off-cycle contractor payroll run covering 1–25 March.'],
+           ['How it caused the gap','It posted on the 28th, three days after the billing cutoff on the 25th, so the invoice couldn\'t include it.'],
+           ['Why it isn\'t a pricing problem','The work and the cost are both correct. Only the timing slipped — and it bills next month at the same 10%.']],
+    math:'$310,000 of eligible unbilled cost × 10% = $31,000',
+    forward:'The $310,000 rolls into April\'s invoice at the standard rate. No tax adjustment is created, and nothing needs restating.',
+    trace:[['query_payroll(2026-03)','PAY-2026-M2 posted 03-28','r'],['compare to billing cutoff day 25','3 days late','w'],['confirm account eligible','6100 eligible','r']]},
+
+  F2:{group:'variance', title:'Severance the billing system was right to exclude', amount:8000, items:1, reduces:8000,
+    plain:'$80,000 of severance was counted in the margin calculation but left off the invoice. An approved memo confirms the invoice was correct.',
+    action:'Accept the restated base', actionKind:'dark', doneLabel:'Compliance base restated · logged for audit', tone:'ok',
+    tx:[{id:'GL-2026-0306',date:'2026-03-24',cc:'CC-102',gl:'6120',desc:'Executive severance settlement',amt:'80,000.00'}],
+    chain:[['The disagreement','The margin monitor counted the $80,000 because the account is on the eligible list. The billing system left it off the invoice with no reason recorded.'],
+           ['What settled it','Memo EXP-2026-08, approved by the VP of Corporate Tax on 19 March: severance is permanently excluded from the billing base.'],
+           ['The outcome','The billing system was right and the margin calculation was wrong. The base is restated, not the price.']],
+    math:'10% × $80,000 = $8,000 removed from the target',
+    two:true,
+    forward:'The exclusion is permanent under the memo\'s own terms, so it will not be recovered in any future true-up.',
+    trace:[['query_gl(description~"Severance")','GL-2026-0306 $80,000','r'],['query_approvals(6120)','EXP-2026-08 found','r'],['apply document precedence','memo outranks GL mapping','r']]},
+
+  H3:{group:'variance', title:'Currency movement — checked, too small to matter', amount:340, items:1, reduces:0, rejected:true,
+    plain:'Currency revaluation for the month came to $340. That\'s below the $500 threshold where a match stops being meaningful, so it was rejected rather than used.',
+    action:null, doneLabel:'No action needed — below the materiality threshold', tone:'muted',
+    tx:[{id:'GL-2026-0309',date:'2026-03-31',cc:'CC-100',gl:'7700',desc:'Currency revaluation — intercompany balances',amt:'340.00'}],
+    chain:[['What was checked','Whether currency revaluation on intercompany balances explained any of the remaining gap.'],
+           ['What came back','$340 of net movement for the whole month.'],
+           ['Why it was rejected','Below $500, a number that "fits" is indistinguishable from noise. Using it would be finding a pattern that isn\'t there.']],
+    math:'$340 net movement, against a $500 materiality threshold → rejected',
+    forward:'The unexplained amount is unchanged. The check itself is recorded, so an auditor can see it was tested rather than skipped.',
+    trace:[['query_gl(7700)','net $340','r'],['materiality gate','$340 < $500 → rejected','w']]},
+
+  RC:{group:'variance', title:'Money the entity was owed and never billed', amount:14000, items:1, reduces:0, recovery:true,
+    plain:'$140,000 of engineering software sits in an account excluded from billing, so nobody ever charged for it. Correcting that adds $14,000 the entity was entitled to.',
+    action:'Approve reclassification', actionKind:'dark', doneLabel:'Reclassification drafted · added to April billing', tone:'info',
+    tx:[{id:'GL-2026-0305',date:'2026-03-22',cc:'CC-100',gl:'6800',desc:'DevOps software licences — engineering',amt:'140,000.00'}],
+    chain:[['What was found','$140,000 of engineering software licences posted to account 6800, which is excluded from billing.'],
+           ['Why nobody noticed','Because the account is excluded, the cost is invisible to both the margin monitor and the billing system. It was never part of the $44,000 gap.'],
+           ['What to do','The description confirms it\'s rechargeable engineering software. Moving it to account 6100 puts it in the billable base.']],
+    math:'10% × $140,000 = $14,000 of entitlement recovered',
+    forward:'This does not reduce the $44,000 gap — it was never part of it. It is additional money the entity can bill from April.',
+    trace:[['query_gl(6800, "SaaS")','GL-2026-0305 $140,000','r'],['classify as rechargeable','description confirms','r']]}
+};
+
+const CORR = [['June 2024','payroll posted 27th','Yes'],['July 2024','on time','No'],['Aug 2024','payroll posted 29th','Yes'],['Sept 2024','payroll posted 27th','Yes'],['Oct 2024','on time','No'],['Nov 2024','payroll posted 28th','Yes'],['Dec 2024','payroll posted 27th','Yes'],['Jan 2025','on time','No'],['Feb 2025','payroll posted 26th','Yes'],['Mar 2025','payroll posted 28th','Yes'],['Apr 2025','on time','No']];
+
+/* ================= STATE ================= */
+const state = { status:{}, activity:[], ran:{clearing:false, variance:false}, signoff:null };
+Object.keys(F).forEach(k => state.status[k] = null);
+
+const CLEARING = ['S4','S5','S3','S2','S1','S6'];
+const VARIANCE = ['F1','F2','H3'];
+const DECISIONS_TOTAL = 10; // 6 clearing + F1 + F2 + RC + sign-off
+
+/* ================= TOAST ================= */
+function toast(title, sub, undoFn){
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<div class="msg"><b>${title}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+  if(undoFn){
+    const b = document.createElement('button'); b.textContent = 'Undo';
+    b.onclick = () => { undoFn(); t.remove(); };
+    t.appendChild(b);
+  }
+  $('toasts').appendChild(t);
+  setTimeout(() => t.remove(), 5200);
+}
+
+/* ================= ACTIVITY ================= */
+function logActivity(title, detail, tone){
+  state.activity.unshift({title, detail, tone, time: now()});
+  renderActivity();
+  renderCounts();
+}
+function renderActivity(){
+  const el = $('act-list');
+  if(!state.activity.length){
+    el.innerHTML = `<div class="empty"><h3>Nothing yet</h3><p>Decisions you make will be recorded here.</p></div>`;
+    return;
+  }
+  const color = {ok:'var(--ok-ink)', warn:'var(--warn-ink)', info:'var(--info-ink)', muted:'var(--muted-ink)'};
+  el.innerHTML = state.activity.map(a => `
+    <div class="act-item">
+      <span class="dot" style="background:${color[a.tone]||'var(--ok-ink)'}"></span>
+      <div class="body"><b>${a.title}</b><p>${a.detail}</p></div>
+      <span class="time">${a.time}</span>
+    </div>`).join('');
+}
+
+/* ================= COUNTS ================= */
+function decisionsMade(){
+  let n = Object.keys(state.status).filter(k => state.status[k] && k !== 'H3').length;
+  if(state.signoff) n++;
+  return n;
+}
+function renderCounts(){
+  const made = decisionsMade();
+  const left = Math.max(0, DECISIONS_TOTAL - made);
+  $('q-need').textContent = left;
+  $('q-done').textContent = made;
+  $('q-fill').style.width = (made/DECISIONS_TOTAL*100) + '%';
+  $('q-lbl').textContent = `${made} of ${DECISIONS_TOTAL} decisions made`;
+  $('cnt-queue').textContent = left;
+  $('cnt-queue').className = left ? 'count' : 'count done';
+
+  const cLeft = CLEARING.filter(k => !state.status[k]).length;
+  $('cnt-clearing').textContent = cLeft;
+  $('cnt-clearing').className = cLeft ? 'count' : 'count done';
+  $('c-left').textContent = cLeft;
+  $('qc-chip-1').textContent = cLeft ? `${cLeft} decision${cLeft>1?'s':''} waiting` : 'All reviewed';
+  $('qc-chip-1').className = cLeft ? 'chip hot' : 'chip ok';
+
+  const vKeys = ['F1','F2','RC'];
+  let vLeft = vKeys.filter(k => !state.status[k]).length + (state.signoff ? 0 : 1);
+  $('cnt-variance').textContent = vLeft;
+  $('cnt-variance').className = vLeft ? 'count' : 'count done';
+  $('v-left').textContent = vLeft;
+  $('qc-chip-2').textContent = vLeft ? `${vLeft} decision${vLeft>1?'s':''} waiting` : 'Signed off';
+  $('qc-chip-2').className = vLeft ? 'chip hot' : 'chip ok';
+
+  $('cnt-activity').textContent = state.activity.length;
+
+  if(state.ran.clearing){
+    const done = CLEARING.filter(k => state.status[k]).length;
+    $('c-fill').style.width = (done/6*100)+'%';
+    $('c-lbl').textContent = `${done} of 6 causes actioned`;
+    const remaining = CLEARING.filter(k => !state.status[k]).reduce((s,k) => s + F[k].amount, 0);
+    $('c-unexplained').textContent = fmt(remaining);
+  }
+  if(state.ran.variance){
+    const done = vKeys.filter(k => state.status[k]).length + (state.signoff?1:0);
+    $('v-fill').style.width = (done/4*100)+'%';
+    $('v-lbl').textContent = `${done} of 4 decisions made`;
+  }
+}
+
+/* ================= FINDING CARD ================= */
+function findingCard(key){
+  const f = F[key], st = state.status[key];
+  const card = document.createElement('div');
+  card.className = 'finding' + (st ? ' done' : '') + (f.rejected ? ' rejected' : '');
+  card.dataset.key = key;
+
+  const sub = f.recovery ? 'recoverable' : f.rejected ? 'checked, not used'
+            : f.group === 'variance' ? 'of the gap explained' : `${f.items} item${f.items>1?'s':''}`;
+
+  card.innerHTML = `
+    <div class="head">
+      <div class="title"><h4>${f.title}</h4><p>${f.plain}</p></div>
+      <div class="figure"><div class="m">${f.recovery?'+':''}${fmt(f.amount)}</div><div class="sub">${sub}</div></div>
+    </div>
+    <div class="actions"></div>`;
+
+  const actions = card.querySelector('.actions');
+  const ev = document.createElement('button');
+  ev.className = 'btn ghost sm'; ev.textContent = 'View evidence';
+  ev.onclick = () => openEvidence(key);
+  actions.appendChild(ev);
+  actions.insertAdjacentHTML('beforeend', '<span class="spacer"></span>');
+
+  if(st){
+    const res = document.createElement('div');
+    res.className = 'resolved';
+    res.innerHTML = `<span class="tick">✓</span>${f.doneLabel}`;
+    actions.appendChild(res);
+    if(f.action){
+      const u = document.createElement('button');
+      u.className = 'undo'; u.textContent = 'Undo';
+      u.onclick = () => { state.status[key] = null; rerenderGroup(f.group); renderCounts(); toast('Decision reversed', f.title); };
+      actions.appendChild(u);
+    }
+  } else if(f.action){
+    const b = document.createElement('button');
+    b.className = 'btn ' + (f.actionKind === 'ghost' ? 'ghost' : 'dark') + ' sm';
+    b.textContent = f.action;
+    b.onclick = () => act(key);
+    actions.appendChild(b);
+  } else {
+    actions.insertAdjacentHTML('beforeend', `<span class="chip muted">${f.doneLabel}</span>`);
+  }
+  return card;
+}
+
+function act(key){
+  const f = F[key];
+  state.status[key] = 'done';
+  rerenderGroup(f.group);
+  renderCounts();
+  logActivity(f.action, `${f.title} — ${fmt(f.amount)}`, f.tone);
+  toast(f.doneLabel.split('·')[0].trim(), f.title, () => {
+    state.status[key] = null;
+    state.activity.shift();
+    rerenderGroup(f.group); renderActivity(); renderCounts();
+  });
+}
+
+function rerenderGroup(group){
+  if(group === 'clearing'){
+    const c = $('c-findings'); c.innerHTML = '';
+    CLEARING.forEach(k => c.appendChild(findingCard(k)));
+  } else {
+    const c = $('v-findings'); c.innerHTML = '';
+    VARIANCE.forEach(k => c.appendChild(findingCard(k)));
+    renderVarianceExtra();
+  }
+}
+
+/* ================= VARIANCE EXTRA (recovery + sign-off) ================= */
+function renderVarianceExtra(){
+  const el = $('v-extra'); el.hidden = false;
+  el.innerHTML = `<div class="sectionlabel">SEPARATE FINDING — NOT PART OF THE $44,000 GAP</div>`;
+  el.appendChild(findingCard('RC'));
+
+  const s = document.createElement('div');
+  s.className = 'signoff';
+  if(state.signoff){
+    const isApproved = state.signoff.decision === 'approved';
+    s.innerHTML = `
+      <h3>$5,000 true-up — ${isApproved ? 'approved by you' : state.signoff.decision === 'rejected' ? 'rejected' : 'evidence requested'}</h3>
+      <p class="lede">${isApproved ? 'Journal entry released for posting and recorded against your name.' : state.signoff.decision === 'rejected' ? 'Returned to reconFX. No entry will be posted.' : 'The billing-run export has been requested from IT. The entry stays in draft until it arrives.'}</p>
+      ${state.signoff.note ? `<div class="kvbox"><div class="k">Your note</div><div style="font-size:13.5px; color:var(--ink-soft); margin-top:4px;">${state.signoff.note}</div></div>` : ''}
+      <div style="margin-top:14px;"><button class="undo" id="so-undo">Reopen this decision</button></div>`;
+    el.appendChild(s);
+    $('so-undo').onclick = () => { state.signoff = null; renderVarianceExtra(); renderCounts(); toast('Decision reopened','$5,000 true-up'); };
+    return;
+  }
+
+  s.innerHTML = `
+    <h3>$5,000 needs your sign-off</h3>
+    <p class="lede">After everything above, $5,000 has no innocent explanation. The invoice applied 9.79% where the agreement says 10.00%. That looks like a genuine underbilling — but the billing system's configuration export isn't available, so reconFX will not call it proven.</p>
+    <div class="kvgrid">
+      <div class="kvbox"><div class="k">Rate agreed</div><div class="v">10.00%</div></div>
+      <div class="kvbox"><div class="k">Rate applied</div><div class="v">9.79%</div></div>
+      <div class="kvbox"><div class="k">On billed base</div><div class="v">$2,370,000</div></div>
+      <div class="kvbox"><div class="k">Shortfall</div><div class="v" style="color:var(--hot-ink)">$5,000</div></div>
+    </div>
+    <p style="font-size:13.5px; color:var(--ink-soft); margin:0 0 6px;"><b>What would settle it:</b></p>
+    <ul style="font-size:13.5px; color:var(--ink-soft); margin:0 0 16px; padding-left:20px;">
+      <li>The March billing-run configuration export, showing the rate parameter actually used</li>
+      <li>The billing system's change log for 1–25 March</li>
+    </ul>
+    <details class="tech"><summary>Show the draft journal entry</summary><div class="body"><div class="jewrap"><table class="je">
+      <thead><tr><th>Entity</th><th>Account</th><th>Description</th><th style="text-align:right">Debit</th><th style="text-align:right">Credit</th></tr></thead>
+      <tbody>
+        <tr><td>India entity</td><td>1200</td><td>Intercompany receivable — US parent</td><td class="n">5,000</td><td class="n"></td></tr>
+        <tr><td>India entity</td><td>4100</td><td>Intercompany service revenue</td><td class="n"></td><td class="n">5,000</td></tr>
+        <tr><td>US parent</td><td>6300</td><td>Intercompany engineering expense</td><td class="n">5,000</td><td class="n"></td></tr>
+        <tr><td>US parent</td><td>2100</td><td>Intercompany payable — India</td><td class="n"></td><td class="n">5,000</td></tr>
+      </tbody></table></div></div></details>
+    <div class="field"><label for="so-note">Add a note (optional — it goes in the audit record)</label><textarea id="so-note" placeholder="e.g. Approved pending IT confirmation of the March rate parameter."></textarea></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn dark sm" id="so-approve">Approve the $5,000 true-up</button>
+      <button class="btn ghost sm" id="so-evidence">Request the missing export</button>
+      <button class="btn ghost sm" id="so-reject">Reject</button>
+    </div>`;
+  el.appendChild(s);
+
+  const note = () => $('so-note').value.trim();
+  $('so-approve').onclick = () => {
+    state.signoff = {decision:'approved', note:note()};
+    renderVarianceExtra(); renderCounts();
+    logActivity('Approved $5,000 true-up','Journal entry released for posting · rate 9.79% vs 10.00% agreed','ok');
+    toast('True-up approved','$5,000 released for posting');
+  };
+  $('so-evidence').onclick = () => {
+    state.signoff = {decision:'evidence', note:note()};
+    renderVarianceExtra(); renderCounts();
+    logActivity('Requested billing-run export','$5,000 held in draft until the March rate parameter is confirmed','warn');
+    toast('Export requested','Entry stays in draft until it arrives');
+  };
+  $('so-reject').onclick = () => {
+    state.signoff = {decision:'rejected', note:note()};
+    renderVarianceExtra(); renderCounts();
+    logActivity('Rejected $5,000 true-up','Returned to reconFX — no entry posted','muted');
+    toast('True-up rejected','Nothing will be posted');
+  };
+}
+
+/* ================= EVIDENCE MODAL ================= */
+function openEvidence(key){
+  const f = F[key];
+  $('m-title').textContent = f.title;
+  $('m-chip').className = 'chip ' + (f.tone || 'ok');
+  $('m-chip').textContent = `${f.recovery?'+':''}${fmt(f.amount)}${f.items>1?` · ${f.items} items`:''}`;
+
+  let h = '<h4>What the entries actually are</h4><div class="txwrap"><table class="tx"><thead><tr><th>Reference</th><th>Date</th><th>Cost centre</th><th>Account</th><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>';
+  f.tx.forEach(r => h += `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.cc}</td><td>${r.gl}</td><td>${r.desc}</td><td class="n">${r.amt}</td></tr>`);
+  h += '</tbody></table></div>';
+  if(f.note) h += `<p style="font-size:12.5px;color:var(--ink-faint);margin:8px 0 0;">${f.note}</p>`;
+
+  h += '<h4>How it got here</h4><div class="chain">';
+  f.chain.forEach(([k,t]) => h += `<div class="link"><span class="k">${k}</span><p>${t}</p></div>`);
+  h += '</div>';
+
+  h += `<h4>How the number was reached</h4><div class="mathline">${f.math}</div>`;
+
+  if(f.two){
+    h += `<h4>Two systems disagreed</h4><div class="twocol">
+      <div><h5>Margin calculation</h5><p>Counted the $80,000, because account 6120 is on the eligible list.</p></div>
+      <div><h5>Billing system</h5><p>Left it off the invoice, with no reason recorded.</p></div>
+    </div><div class="resolution">The approved memo outranks the account mapping, so the billing system was right and the margin calculation was wrong.</div>`;
+  }
+  if(f.corr){
+    h += '<h4>The pattern this revealed</h4><div class="txwrap"><table class="corr"><thead><tr><th>Month</th><th>Payroll that month</th><th>Late?</th></tr></thead><tbody>';
+    CORR.forEach(([m,s,y]) => h += `<tr><td>${m}</td><td>${s}</td><td class="${y==='Yes'?'y':'n2'}">${y}</td></tr>`);
+    h += '</tbody></table></div><p style="font-size:12.5px;color:var(--ink-faint);margin:8px 0 0;">Seven of eleven — which is why timing was the first thing checked this month.</p>';
+  }
+  if(f.forward) h += `<h4>What happens next</h4><p style="font-size:13.5px; color:var(--ink-soft); margin:0;">${f.forward}</p>`;
+  if(f.gap){
+    h += '<h4>What would close this</h4><ul style="font-size:13.5px; color:var(--ink-soft); margin:0; padding-left:20px;">';
+    f.gap.forEach(g => h += `<li>${g}</li>`); h += '</ul>';
+  }
+  if(f.trace){
+    h += '<details class="tech" style="margin-top:22px;"><summary>Show the technical log</summary><div class="body"><div class="traceblock">';
+    f.trace.forEach(([c,r,t]) => h += `<div><span class="c">${c}</span> → <span class="${t}">${r}</span></div>`);
+    h += '</div></div></details>';
+  }
+  $('m-body').innerHTML = h;
+  $('overlay').hidden = false;
+}
+$('m-close').onclick = () => $('overlay').hidden = true;
+$('overlay').onclick = e => { if(e.target === $('overlay')) $('overlay').hidden = true; };
+document.addEventListener('keydown', e => { if(e.key === 'Escape') $('overlay').hidden = true; });
+
+/* ================= ANALYSIS RUNS ================= */
+async function runClearing(){
+  const box = $('c-runbox');
+  const steps = [
+    'Reading account 1900 — 55 open items',
+    'Grouping by shared characteristics',
+    'Checking the 2023 migration log',
+    'Checking supplier feeds for duplicates',
+    'Checking payroll dates against billing cutoffs',
+    'Checking customer contracts still active',
+    'Six causes identified'
+  ];
+  box.innerHTML = `<div class="spinner"></div><p class="runstep" id="c-step"></p>`;
+  for(const s of steps){ $('c-step').textContent = s; await sleep(520); }
+  await sleep(200);
+  box.hidden = true;
+  state.ran.clearing = true;
+  $('c-footer').hidden = false;
+  const c = $('c-findings'); c.innerHTML = '';
+  for(const k of CLEARING){ c.appendChild(findingCard(k)); await sleep(140); }
+  renderCounts();
+  toast('Analysis complete','6 causes found · 5 with a recommended action');
+}
+
+async function runVariance(){
+  const box = $('v-runbox');
+  const steps = [
+    'Recalculating the margin from source data',
+    'Gap confirmed at $44,000 — 8.41% against 10.00%',
+    'Testing timing first, based on the clearing-account pattern',
+    'Payroll posted 28th, cutoff was the 25th — $31,000 explained',
+    'Checking the severance exclusion against approvals',
+    'Approved memo found — $8,000 explained',
+    'Testing currency movement — $340, below threshold',
+    '$5,000 remains with no innocent explanation'
+  ];
+  box.innerHTML = `<div class="spinner"></div><p class="runstep" id="v-step"></p>`;
+  const hero = $('v-unexplained'), expl = $('v-explained');
+  const marks = {3:[13000,31000], 5:[5000,39000]};
+  for(let i=0;i<steps.length;i++){
+    $('v-step').textContent = steps[i];
+    if(marks[i]){ hero.textContent = fmt(marks[i][0]); expl.textContent = fmt(marks[i][1]); }
+    await sleep(560);
+  }
+  await sleep(200);
+  box.hidden = true;
+  state.ran.variance = true;
+  const c = $('v-findings'); c.innerHTML = '';
+  for(const k of VARIANCE){ c.appendChild(findingCard(k)); await sleep(150); }
+  renderVarianceExtra();
+  renderCounts();
+  toast('Investigation complete','$39,000 explained · $5,000 needs your sign-off');
+}
+
+$('run-clearing').onclick = runClearing;
+$('run-variance').onclick = runVariance;
+$('c-rerun').onclick = () => { $('c-runbox').hidden = false; $('c-runbox').innerHTML = `<div class="spinner"></div><p class="runstep" id="c-step">Re-reading account 1900…</p>`; $('c-findings').innerHTML=''; $('c-footer').hidden = true; runClearing(); };
+$('c-next').onclick = () => go('variance');
+
+/* ================= NAV ================= */
+function go(page){
+  ['queue','clearing','variance','activity'].forEach(p => $('page-'+p).hidden = p !== page);
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => go(t.dataset.page));
+document.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => go(b.dataset.goto));
+
+/* ================= BOOT ================= */
+(async function(){
+  const fill = $('boot-fill'), st = $('boot-status');
+  const lines = [['Signing in as Ananya Rao…',20],['Loading March 2026 close…',48],['Connecting to the ledger…',72],['Checking for open items…',92],['Ready.',100]];
+  for(const [t,p] of lines){ st.textContent = t; fill.style.width = p+'%'; await sleep(300); }
+  await sleep(180);
+  $('boot').classList.add('gone');
+  $('conn').innerHTML = '<span class="dot live"></span>Live';
+})();
+
+renderActivity();
+renderCounts();
+</script>
