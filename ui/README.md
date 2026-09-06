@@ -2,7 +2,7 @@
 
 **Status: not started.**
 
-Per PLAN.md §5.3/§5, a React + Vite console consuming the WebSocket event
+Per README.md §5.3/§5, a React + Vite console consuming the WebSocket event
 stream from `api/`. One screen, two panels — no browser-side computation,
 every number arrives from the backend.
 

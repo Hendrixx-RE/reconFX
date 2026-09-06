@@ -1,4 +1,4 @@
-"""Act II baseline computation (PLAN.md §3.1).
+"""Act II baseline computation (README.md §3.1).
 
     m_target = contractual markup rate
     E_naive  = cost base as computed by a standard OTP monitor: all GL lines

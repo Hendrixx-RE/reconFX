@@ -1,4 +1,4 @@
-"""The 7 tools available to the reconFX agent (PLAN.md §5.2).
+"""The 7 tools available to the reconFX agent (README.md §5.2).
 
 Every tool is a thin wrapper: it reads from data/ and delegates arithmetic
 to engine/. It returns a JSON-serialisable dict with an `evidence_refs`

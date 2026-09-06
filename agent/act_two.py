@@ -1,4 +1,4 @@
-"""Act II — the live investigation (PLAN.md §2.4, §5.3 agent/act_two.py).
+"""Act II — the live investigation (README.md §2.4, §5.3 agent/act_two.py).
 
 compute_baseline() -> load cause_profile.json, order hypotheses by prior ->
 emit event showing WHY this order -> test H1 timing -> test H2 approved
@@ -6,7 +6,7 @@ exclusion -> test H3 FX (rejected) -> test H4 misclassification (recovery,
 separate axis) -> residual -> draft true-up JE -> escalate().
 
 No live model is wired yet (agent/model.py is a stub — see Phase 4). Per
-PLAN.md Phase 3 cut list #1 ("fix the stratum/hypothesis order rather than
+README.md Phase 3 cut list #1 ("fix the stratum/hypothesis order rather than
 having the LLM propose it; keep confirmation"), the hypothesis order here
 is scripted from cause_profile.json's recommended_hypothesis_order, and
 each hypothesis is still *confirmed* by real tool calls and gated by the

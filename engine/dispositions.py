@@ -1,6 +1,6 @@
 """Classification -> (treatment, requires_approval, authority) routing
-(PLAN.md §2.4 / §4.2). A pure lookup table plus one accessor — deliberately
-not more than that, per PLAN.md's Phase 2 cut list #2.
+(README.md §2.4 / §4.2). A pure lookup table plus one accessor — deliberately
+not more than that, per README.md's Phase 2 cut list #2.
 """
 
 DISPOSITIONS = {

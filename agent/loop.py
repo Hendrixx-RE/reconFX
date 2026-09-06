@@ -1,4 +1,4 @@
-"""ReAct loop for reconFX (PLAN.md §5.3 agent/loop.py).
+"""ReAct loop for reconFX (README.md §5.3 agent/loop.py).
 
 Responsibilities:
   - hard step cap MAX_STEPS = 12, forced escalate() on breach
@@ -8,7 +8,7 @@ Responsibilities:
   - structured tool-call parsing with a retry-once-then-escalate policy on
     malformed tool input, so the loop never crashes
 
-No agent framework is used, per PLAN.md §5.1.
+No agent framework is used, per README.md §5.1.
 """
 
 from datetime import datetime, timezone

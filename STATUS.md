@@ -3,15 +3,15 @@
 Single source of truth is the repository root (`agent/`, `engine/`,
 `data/`, `tests/`). A duplicate, incompatible implementation previously
 lived at `reconfx/` (from the `phase1-*` branches, nested under a
-misread of PLAN.md §5.3's tree diagram) — it has been removed; nothing
+misread of README.md §5.3's tree diagram) — it has been removed; nothing
 from it was more complete than what's here.
 
 ## Phase 1 — Evidence corpus: **mostly done**
 
 - `data/` has all required files, internally consistent, sums reconcile
-  to every canonical PLAN.md §4 number.
+  to every canonical README.md §4 number.
 - **Known gap:** `payroll_register.csv` only carries the current period
-  (2026-03). PLAN.md requires 7 of the 11 `IC margin plug` months
+  (2026-03). README.md requires 7 of the 11 `IC margin plug` months
   (2024-06 → 2025-04) to correlate with a post-cutoff payroll posting —
   those historical rows haven't been added yet by anyone. This is why
   `tests/test_canonical_numbers.py::test_plug_months_correlate_with_late_payroll`

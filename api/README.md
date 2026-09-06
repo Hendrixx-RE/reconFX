@@ -2,7 +2,7 @@
 
 **Status: not started.**
 
-Per PLAN.md §5.3, this is the boundary between `agent/` and `ui/`:
+Per README.md §5.3, this is the boundary between `agent/` and `ui/`:
 
 - `main.py` — FastAPI app, WebSocket endpoint streaming state events
   (Appendix B schema) to the console as `agent/loop.py` emits them via its

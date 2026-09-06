@@ -1,4 +1,4 @@
-"""Decomposition state and exclusivity guarantee (PLAN.md §3.2-3.5).
+"""Decomposition state and exclusivity guarantee (README.md §3.2-3.5).
 
 Public contract (do not change without updating agent/ callers):
 
@@ -24,7 +24,7 @@ from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
 
-# classification -> alpha (PLAN.md §3.4). Never settable by the caller/model.
+# classification -> alpha (README.md §3.4). Never settable by the caller/model.
 _ALPHA = {
     # Act II classifications (§3.4)
     "TIMING_UNBILLED": None,       # resolves to target_markup
@@ -63,7 +63,7 @@ def quantify_factor(
     """Pure alpha * sum(amounts) computation with no residual side effects.
 
     Used for findings that sit on a separate axis from the tracked residual
-    — e.g. PLAN.md §2.4 H4: a cost misclassified into an *excluded* account
+    — e.g. README.md §2.4 H4: a cost misclassified into an *excluded* account
     was never part of the original deviation's transaction universe, so
     quantifying its markup impact must not decrement the tracked residual.
     It is a recovery finding, not a factor.

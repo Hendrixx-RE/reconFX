@@ -1,4 +1,4 @@
-"""Phase 3 acceptance tests (PLAN.md Phase 3 acceptance criteria).
+"""Phase 3 acceptance tests (README.md Phase 3 acceptance criteria).
 
 - Act II produces identical numbers across repeated runs.
 - Act I and Act II reconcile to the canonical §4 figures.
