@@ -60,3 +60,5 @@ Open the Vite URL it prints, then trigger a run from the UI (or `POST /api/run/a
 ```bash
 python -m pytest tests/ -q
 ```
+
+Shoutout on X-https://x.com/peddletometal/status/2097157147884982540
